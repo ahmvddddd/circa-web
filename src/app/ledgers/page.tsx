@@ -1,8 +1,8 @@
-// src/app/groups/[groupId]/ledger
-
 import AppShell from "@/components/layout/AppShell";
 import { ledgers } from "@/lib/ledgers";
 import clsx from "clsx";
+import Link from "next/link";
+
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("en-NG", {
@@ -12,29 +12,30 @@ const formatCurrency = (amount: number) =>
     signDisplay: "always",
   }).format(amount);
 
-export default function GroupLedgerPage() {
+export default function GlobalLedgersPage() {
   return (
     <AppShell
-      title="Group Ledger"
-      subtitle="Track all credits and debits for this group"
+      title="Global Ledgers"
+      subtitle="Track all credits and debits across all groups"
     >
-      
       <div className="space-y-3 sm:space-y-4">
         {ledgers.map((ledger) => {
           const isCredit = ledger.type === "CREDIT";
           const signedAmount = isCredit
-            ? ledger.amount
+            ? +ledger.amount
             : -ledger.amount;
 
           return (
-            <div
+           <Link
               key={ledger.id}
+              href={`/ledgers/${ledger.id}`}
               className="
-                rounded-lg border border-border bg-surface
+                block rounded-lg border border-border bg-surface
                 p-3 sm:p-4
                 transition-colors hover:bg-muted
               "
             >
+
               <div
                 className="
                   grid grid-cols-1
@@ -52,16 +53,21 @@ export default function GroupLedgerPage() {
                   <div className="text-xs font-medium">#{ledger.id}</div>
 
                   <div className="pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Group / Account
+                    Group
                   </div>
 
-                  {/* Truncation added */}
-                  <div
-                    className="text-xs font-medium truncate"
-                    title={`${ledger.group} / ${ledger.account}`}
+                  {/* Group badge (ONLY addition) */}
+                  <span
+                    className="
+                      inline-flex w-fit rounded-full
+                      bg-primary px-2.5 py-0.5
+                      text-[11px] font-semibold
+                      text-primary-foreground
+                    "
+                    title={ledger.groupName}
                   >
-                    {ledger.group} / {ledger.account}
-                  </div>
+                    {ledger.groupName}
+                  </span>
                 </div>
 
                 {/* Type / Source */}
@@ -84,7 +90,10 @@ export default function GroupLedgerPage() {
                   <div className="pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Source
                   </div>
-                  <div className="text-xs font-medium truncate" title={ledger.source}>
+                  <div
+                    className="text-xs font-medium truncate"
+                    title={ledger.source}
+                  >
                     {ledger.source}
                   </div>
                 </div>
@@ -122,12 +131,12 @@ export default function GroupLedgerPage() {
                   <div className="text-xs">{ledger.date}</div>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
 
-      {/* Pagination */}
+      {/* Pagination (unchanged) */}
       <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
         <p className="text-sm text-muted-foreground">
           Showing <span className="font-semibold">21</span> to{" "}

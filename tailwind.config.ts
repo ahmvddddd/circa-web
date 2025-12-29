@@ -1,41 +1,60 @@
 // tailwind.config.ts
-import type { Config } from 'tailwindcss';
+import type { Config } from "tailwindcss";
 
 const config: Config = {
-  // 1. Content: Specifies where Tailwind should look for classes to compile.
+  darkMode: "class",
+
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./index.html",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  
-  // 2. Theme: Allows you to customize Tailwind's default design system.
+
+
   theme: {
-    // Extend adds new values to the default theme (e.g., a custom color).
     extend: {
       colors: {
-        'primary': '#1E40AF', // Example custom primary color (indigo-700 equivalent)
-        'secondary': '#D97706', // Example custom secondary color (amber-700 equivalent)
-      },
-      spacing: {
-        '18': '4.5rem', // Adds a new utility class: w-18, h-18, p-18, etc.
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic':
-          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        primary: "#6824a3",
+
+        background: {
+          light: "#f6f8f7",
+          dark: "#112117",
+        },
+
+        card: {
+          light: "#E6E6EA",
+          dark: "#1C1C26",
+        },
+
+        surface: {
+          light: "#ffffff",
+          dark: "#1a231e",
+        },
+
+        border: {
+          light: "#f4e7e7",
+          dark: "#3a2a2a",
+        },
+
+        shadow: {
+          cardLight: "#D8D8DB",
+          cardDark: "#000000",
+        },
+
+        text: {
+          main: {
+            light: "#1c0d0d",
+            dark: "#fcf8f8",
+          },
+          sub: {
+            light: "#9c4949",
+            dark: "#d1a3a3",
+          },
+        },
       },
     },
   },
-  
-  // 3. Plugins: Allows you to add extra utilities, base styles, or components.
-  plugins: [
-    require('@tailwindcss/forms'), // Example plugin for better form styling
-    // require('@tailwindcss/typography'), // Common plugin for markdown rendering
-  ],
-  
-  // 4. Prefix: Optional. Adds a prefix to all Tailwind classes (e.g., tw-bg-red-500).
-  // prefix: 'tw-', 
-};
 
-export default config;
+  plugins: [],
+};
