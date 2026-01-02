@@ -8,8 +8,7 @@ import clsx from "clsx";
 const navItems = [
   { label: "Groups", href: "/groups", icon: Users },
   { label: "Withdrawals", href: "/withdrawals", icon: ArrowUpRight },
-  { label: "Ledgers", href: "/ledgers", icon: Table },,
-  { label: "New Group", href: "groups/create", icon: Table },
+  { label: "Ledgers", href: "/ledgers", icon: Table },
 ];
 
 export default function Sidebar() {

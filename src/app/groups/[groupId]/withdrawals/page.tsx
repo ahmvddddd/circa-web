@@ -54,7 +54,7 @@ export default function GroupWithdrawalsPage() {
     >
       <div className="flex min-h-[calc(100vh-8rem)] flex-col">
         {/* Status Filters */}
-        <div className="mb-6 flex flex-wrap items-center gap-2 border-y border-border py-4">
+        <div className="mb-4 flex items-center gap-1 overflow-x-auto whitespace-nowrap border-y border-border py-2 flex-nowrap scrollbar-hide">
           {filters.map(([key, label]) => {
             const isActive = key === status || (!key && !status);
 
@@ -67,8 +67,8 @@ export default function GroupWithdrawalsPage() {
                     : `/groups/${groupId}/withdrawals`
                 }
                 className={`
-                  h-8 px-4 rounded-lg inline-flex items-center justify-center
-                  text-sm font-medium transition
+                  h-8 px-4 rounded-md inline-flex items-center justify-center
+                  text-xs font-medium transition
                   ${
                     isActive
                       ? "bg-primary text-white"
@@ -85,7 +85,7 @@ export default function GroupWithdrawalsPage() {
         {/* Withdrawals List */}
         <div className="flex flex-col gap-2">
           {filteredWithdrawals.length === 0 && (
-            <p className="py-10 text-center text-sm text-muted-foreground">
+            <p className="py-6 text-center text-xs text-muted-foreground">
               No withdrawals found for this filter.
             </p>
           )}
@@ -102,11 +102,11 @@ export default function GroupWithdrawalsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="mt-auto mt-8 flex items-center justify-center gap-1">
+        <div className="mt-auto mt-6 flex items-center justify-center gap-1">
           {[1, 2, 3, "...", 8, 9, 10].map((page, i) => (
             <button
               key={i}
-              className="size-10 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="size-7 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               {page}
             </button>

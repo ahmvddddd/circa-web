@@ -2,12 +2,23 @@
 "use client";
 
 import { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 export default function CreateGroupForm() {
+  const router = useRouter();
+
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    console.log("Create Group submitted");
+    console.log("Create Group form submitted");
   }
+
+  function handleCancel() {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/groups");
+    }
+  }  
 
   return (
     <form
@@ -103,7 +114,7 @@ export default function CreateGroupForm() {
                 className="rounded-xl border border-border-light dark:border-border-dark bg-transparent px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
               />
               <p className="text-[11px] text-text-sub-light dark:text-text-sub-dark">
-                Minimum admins needed to approve a join request.
+                Minimum admins required to approve a join request.
               </p>
             </div>
 
@@ -129,6 +140,7 @@ export default function CreateGroupForm() {
 <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2">
   <button
     type="button"
+    onClick={handleCancel}
     className="rounded-lg border border-border-light dark:border-border-dark px-4 py-1.5 text-xs font-medium hover:bg-card-light dark:hover:bg-card-dark transition"
   >
     Cancel
