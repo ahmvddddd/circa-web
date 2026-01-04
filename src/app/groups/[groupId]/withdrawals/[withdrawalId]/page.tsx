@@ -1,16 +1,23 @@
 // src/app/groups/[groupId]/withdrawals/[withdrawalId]/page.tsx
+
 import AppShell from "@/components/layout/AppShell";
 import { withdrawals } from "@/lib/withdrawals";
 import { notFound } from "next/navigation";
 
 type PageProps = {
-  params: { withdrawalId: string };
+  params: Promise<{
+    groupId: string;
+    withdrawalId: string;
+  }>;
 };
 
 export default async function WithdrawalDetailsPage({ params }: PageProps) {
-  const { withdrawalId } = await params;
+  
+  const { groupId, withdrawalId } = await params;
 
-  const withdrawal = withdrawals.find((w) => w.id === withdrawalId);
+  const withdrawal = withdrawals.find(
+    (w) => w.id === withdrawalId && w.groupId === groupId
+  );
 
   if (!withdrawal) return notFound();
 
@@ -22,7 +29,7 @@ export default async function WithdrawalDetailsPage({ params }: PageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Amount + Status */}
+          {/* Amount and Status */}
           <div className="rounded-lg border border-border bg-surface p-3">
             <div className="flex flex-col md:flex-row justify-between gap-2">
               <div>
@@ -42,11 +49,18 @@ export default async function WithdrawalDetailsPage({ params }: PageProps) {
               </div>
             </div>
 
+            {/* Disabled Actions */}
             <div className="flex flex-wrap gap-2 mt-4">
-              <button className="h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-semibold">
+              <button
+                disabled
+                className="h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-semibold opacity-50 cursor-not-allowed"
+              >
                 Approve
               </button>
-              <button className="h-8 px-3 rounded-md bg-muted text-foreground text-xs font-semibold">
+              <button
+                disabled
+                className="h-8 px-3 rounded-md bg-muted text-foreground text-xs font-semibold opacity-50 cursor-not-allowed"
+              >
                 Reject
               </button>
             </div>
@@ -65,8 +79,10 @@ export default async function WithdrawalDetailsPage({ params }: PageProps) {
               </div>
 
               <div className="sm:col-span-2">
-                <p className="text-muted-foreground">Group ID</p>
-                <p className="font-medium">#G-789101</p>
+                <p className="text-muted-foreground">Group</p>
+                <p className="font-medium">
+                  {withdrawal.groupName} (#{withdrawal.groupId})
+                </p>
               </div>
 
               <div className="sm:col-span-2">
@@ -88,14 +104,22 @@ export default async function WithdrawalDetailsPage({ params }: PageProps) {
             </h3>
 
             <ul className="space-y-2 text-[11px]">
-              <li className="flex justify-between">
-                <span className="font-medium">Emily Davis</span>
-                <span className="text-green-600">Approved</span>
-              </li>
-              <li className="flex justify-between">
-                <span className="font-medium">John Smith</span>
-                <span className="text-green-600">Approved</span>
-              </li>
+              {withdrawal.approvals.history.map((item, idx) => (
+                <li key={idx} className="flex justify-between">
+                  <span className="font-medium">{item.name}</span>
+                  <span
+                    className={
+                      item.status === "approved"
+                        ? "text-green-600"
+                        : item.status === "rejected"
+                        ? "text-red-600"
+                        : "text-muted-foreground"
+                    }
+                  >
+                    {item.status}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -107,43 +131,45 @@ export default async function WithdrawalDetailsPage({ params }: PageProps) {
             <h3 className="mb-2 text-xs font-semibold text-foreground">
               Requestor
             </h3>
-            <p className="text-xs font-medium">Sarah Miller</p>
-            <p className="text-[11px] text-muted-foreground">
-              Finance Department
-            </p>
+            <p className="text-xs font-medium">{withdrawal.requestedBy}</p>
           </div>
 
-          {/* Important Dates */}
-          <div className="rounded-lg border border-border bg-surface p-3">
-            <h3 className="mb-2 text-xs font-semibold text-foreground">
-              Important Dates
-            </h3>
-
-            <ul className="space-y-2 text-[11px]">
-              <li>
-                <p className="font-medium">Created</p>
-                <p className="text-muted-foreground">
-                  June 24, 2024 · 9:30 AM
-                </p>
-              </li>
-              <li>
-                <p className="font-medium">Expires</p>
-                <p className="text-muted-foreground">
-                  July 1, 2024 · 9:30 AM
-                </p>
-              </li>
-              <li>
-                <p className="font-medium text-muted-foreground">
-                  Executed
-                </p>
-                <p className="text-muted-foreground">
-                  Not yet executed
-                </p>
-              </li>
-            </ul>
-          </div>
+          
         </div>
       </div>
     </AppShell>
   );
 }
+
+
+// {/* Important Dates */}
+//           <div className="rounded-lg border border-border bg-surface p-3">
+//             <h3 className="mb-2 text-xs font-semibold text-foreground">
+//               Important Dates
+//             </h3>
+
+//             <ul className="space-y-2 text-[11px]">
+//               <li>
+//                 <p className="font-medium">Created</p>
+//                 <p className="text-muted-foreground">
+//                   {withdrawal.requestedAt}
+//                 </p>
+//               </li>
+
+//               {withdrawal.expiresAt && (
+//                 <li>
+//                   <p className="font-medium">Expires</p>
+//                   <p className="text-muted-foreground">
+//                     {withdrawal.expiresAt}
+//                   </p>
+//                 </li>
+//               )}
+
+//               <li>
+//                 <p className="font-medium text-muted-foreground">Executed</p>
+//                 <p className="text-muted-foreground">
+//                   {withdrawal.executedAt ?? "Not yet executed"}
+//                 </p>
+//               </li>
+//             </ul>
+//           </div>
