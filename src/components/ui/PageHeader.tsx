@@ -42,7 +42,7 @@ export default function PageHeader({
 
         {/* Title */}
         <div className="min-w-0 flex-1 leading-tight">
-          <p className="text-sm font-semibold">
+          <p className="text-xs font-semibold">
             {title}
           </p>
           {subtitle && (
