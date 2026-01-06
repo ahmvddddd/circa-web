@@ -40,7 +40,6 @@ export default function GroupWithdrawalsPage() {
 
   const filters: Array<[string | null, string]> = [
     [null, "All"],
-    ["approval_required", "Approval Required"],
     ["pending", "Pending"],
     ["approved", "Approved"],
     ["paid", "Paid"],
@@ -53,34 +52,33 @@ export default function GroupWithdrawalsPage() {
       subtitle={subtitle}
     >
       <div className="flex min-h-[calc(100vh-8rem)] flex-col">
-        {/* Status Filters */}
-        <div className="mb-4 flex items-center gap-1 overflow-x-auto whitespace-nowrap border-y border-border py-2 flex-nowrap scrollbar-hide">
-          {filters.map(([key, label]) => {
-            const isActive = key === status || (!key && !status);
+{/* Status Filters */}
+<div className="mb-4 flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+  {filters.map(([key, label]) => {
+    const isActive = key === status || (!key && !status);
 
-            return (
-              <Link
-                key={key ?? "all"}
-                href={
-                  key
-                    ? `/groups/${groupId}/withdrawals?status=${key}`
-                    : `/groups/${groupId}/withdrawals`
-                }
-                className={`
-                  h-8 px-4 rounded-md inline-flex items-center justify-center
-                  text-xs font-medium transition
-                  ${
-                    isActive
-                      ? "bg-primary text-white"
-                      : "bg-muted text-muted-foreground hover:bg-muted/70"
-                  }
-                `}
-              >
-                {label}
-              </Link>
-            );
-          })}
-        </div>
+    return (
+      <Link
+        key={key ?? "all"}
+        href={
+          key
+            ? `/groups/${groupId}/withdrawals?status=${key}`
+            : `/groups/${groupId}/withdrawals`
+        }
+        className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-opacity
+          ${
+            isActive
+              ? "bg-primary text-primary-foreground hover:opacity-80"
+              : "bg-muted text-muted-foreground hover:opacity-70"
+          }
+        `}
+      >
+        {label}
+      </Link>
+    );
+  })}
+</div>
+
 
         {/* Withdrawals List */}
         <div className="flex flex-col gap-2">

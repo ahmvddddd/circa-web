@@ -1,10 +1,10 @@
-//src/app/ledgers/[ledgerId]/page.tsx
-
+// src/app/groups/[groupId]/ledgers/[ledgerId]/page.tsx
 "use client";
+
 import AppShell from "@/components/layout/AppShell";
 import { ledgers } from "@/lib/ledgers";
-import { notFound } from "next/navigation";
-import { useParams } from "next/navigation";
+import { groups } from "@/lib/groups";
+import { notFound, useParams } from "next/navigation";
 import clsx from "clsx";
 import Link from "next/link";
 
@@ -13,22 +13,26 @@ const formatCurrency = (amount: number) =>
     style: "currency",
     currency: "NGN",
     minimumFractionDigits: 0,
+    signDisplay: "always",
   }).format(amount);
 
 export default function LedgerDetailsPage() {
-  const params = useParams();
-  const ledgerId = params.ledgerId as string;
+  const { groupId, ledgerId } = useParams<{
+    groupId: string;
+    ledgerId: string;
+  }>();
 
-  const ledger = ledgers.find((l) => l.id === ledgerId);
+  const ledger = ledgers.find((l) => l.id === ledgerId && l.group === groupId);
   if (!ledger) notFound();
 
+  const group = groups.find((g) => g.id === ledger.group);
+  if (!group) notFound();
+
   const isCredit = ledger.type === "CREDIT";
+  const signedAmount = isCredit ? ledger.amount : -ledger.amount;
 
   return (
-    <AppShell
-      title="Ledger Details"
-      subtitle={`Transaction ${ledger.id}`}
-    >
+    <AppShell title={`Ledger: ${ledger.id}`} subtitle={`Transaction Details`}>
       {/* Main Card */}
       <div className="rounded-xl border border-border bg-surface overflow-hidden">
         {/* Top Card */}
@@ -44,8 +48,7 @@ export default function LedgerDetailsPage() {
                 isCredit ? "text-green-500" : "text-red-500"
               )}
             >
-              {isCredit ? "+" : "-"}
-              {formatCurrency(ledger.amount)}
+              {formatCurrency(signedAmount)}
             </span>
           </div>
 
@@ -93,9 +96,9 @@ export default function LedgerDetailsPage() {
             <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Group
             </p>
-            <Link href={`/groups/${ledger.group}/ledgers`}>
+            <Link href={`/groups/${group.id}/ledgers`}>
               <span className="inline-flex cursor-pointer rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground hover:opacity-90">
-                {ledger.groupName}
+                {group.title}
               </span>
             </Link>
           </div>

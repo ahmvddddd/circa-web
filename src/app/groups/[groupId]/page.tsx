@@ -160,7 +160,7 @@ export default function GroupDetailsPage() {
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
             Recent Activity
           </h3>
-          <Link href={`/groups/${groupId}/ledger`} className="text-xs font-bold text-primary hover:underline">
+          <Link href={`/groups/${groupId}/ledgers`} className="text-xs font-bold text-primary hover:underline">
             View full ledger
           </Link>
         </div>

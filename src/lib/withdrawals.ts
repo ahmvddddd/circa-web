@@ -39,7 +39,7 @@ export const withdrawals: Withdrawal[] = [
     title: "Team Offsite Catering",
     requestedBy: "Liam Johnson",
     requestedAt: "2023-10-26",
-    status: "approval_required",
+    status: "pending",
     approvals: { current: 2, total: 5,
           history: [
             { name: "Emily Davis", status: "approved", date: "2023-10-27" },

@@ -75,3 +75,78 @@ export const ledgers: Ledger[] = [
     date: "2023-10-23",
   },
 ];
+
+
+
+
+// export type LedgerType = "CREDIT" | "DEBIT";
+
+// export type Ledger = {
+//   id: string;
+//   groupId: Group["id"]; // ✅ strong relation
+//   account: string;
+//   type: LedgerType;
+//   source: string;
+//   amount: number;
+//   currency: "NGN";
+//   reference: string;
+//   date: string;
+// };
+
+// export const ledgers: Ledger[] = [
+//   {
+//     id: "L001",
+//     groupId: "001",
+//     account: "ACC-987",
+//     type: "CREDIT",
+//     source: "Deposit",
+//     amount: 150,
+//     currency: "NGN",
+//     reference: "**** **** **** 1234",
+//     date: "2023-10-27",
+//   },
+//   {
+//     id: "L002",
+//     groupId: "002",
+//     account: "ACC-988",
+//     type: "DEBIT",
+//     source: "Withdrawal",
+//     amount: 75.5,
+//     currency: "NGN",
+//     reference: "**** **** **** 5678",
+//     date: "2023-10-26",
+//   },
+//   {
+//     id: "L003",
+//     groupId: "003",
+//     account: "ACC-989",
+//     type: "CREDIT",
+//     source: "Deposit",
+//     amount: 200,
+//     currency: "NGN",
+//     reference: "**** **** **** 9012",
+//     date: "2023-10-25",
+//   },
+//   {
+//     id: "L004",
+//     groupId: "004",
+//     account: "ACC-990",
+//     type: "DEBIT",
+//     source: "Withdrawal",
+//     amount: 300,
+//     currency: "NGN",
+//     reference: "**** **** **** 3456",
+//     date: "2023-10-24",
+//   },
+//   {
+//     id: "L005",
+//     groupId: "002",
+//     account: "ACC-988",
+//     type: "CREDIT",
+//     source: "Deposit",
+//     amount: 50,
+//     currency: "NGN",
+//     reference: "**** **** **** 5678",
+//     date: "2023-10-23",
+//   },
+// ];

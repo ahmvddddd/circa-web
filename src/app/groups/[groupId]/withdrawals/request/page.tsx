@@ -14,6 +14,8 @@ const formatCurrency = (amount: number) =>
     minimumFractionDigits: 0,
   }).format(amount);
 
+const AVAILABLE_BALANCE = 12_450;
+
 export default function RequestWithdrawalPage() {
   const params = useParams();
   const groupId = params.groupId as string;
@@ -42,6 +44,9 @@ export default function RequestWithdrawalPage() {
                 type="number"
                 inputMode="decimal"
                 placeholder="0.00"
+                min={100}
+                max={AVAILABLE_BALANCE}
+                required
                 className="h-8 rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 text-sm font-bold text-text-main-light dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
 
@@ -66,6 +71,7 @@ export default function RequestWithdrawalPage() {
                 <input
                   type="text"
                   placeholder="e.g. Jane Doe"
+                  required
                   className="h-8 rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </label>
@@ -78,6 +84,7 @@ export default function RequestWithdrawalPage() {
 
                   <select
                     defaultValue=""
+                    required
                     className="h-8 rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                   >
                     <option value="" disabled>
@@ -100,9 +107,14 @@ export default function RequestWithdrawalPage() {
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
+                    maxLength={10}
                     placeholder="0123456789"
+                    required
                     className="h-8 rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
+                  <span className="text-[10px] text-text-sub-light dark:text-text-sub-dark">
+                    10 digits
+                  </span>
                 </label>
               </div>
 
@@ -110,10 +122,11 @@ export default function RequestWithdrawalPage() {
                 <span className="text-xs text-text-sub-light dark:text-text-sub-dark">
                   Reason for Withdrawal
                 </span>
-                <input
-                  type="text"
-                  placeholder="Briefly describe the purpose..."
-                  className="h-8 rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                <textarea
+                  placeholder="Briefly describe the purpose of this withdrawal..."
+                  rows={4}
+                  required
+                  className="rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </label>
             </div>
@@ -128,10 +141,14 @@ export default function RequestWithdrawalPage() {
               Cancel
             </Link>
 
+            <Link
+            href={`/groups/${groupId}/withdrawals/request/success`}
+            >
             <button className="flex items-center gap-2 px-6 py-3 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary/90 transition">
               Submit Request
               <Send size={14} />
             </button>
+            </Link>
           </div>
         </div>
 
@@ -142,7 +159,7 @@ export default function RequestWithdrawalPage() {
               Available Balance
             </p>
             <p className="text-xl font-black text-text-main-light dark:text-white">
-              {formatCurrency(12_450)}
+              {formatCurrency(AVAILABLE_BALANCE)}
             </p>
 
             <div className="h-px bg-border-light dark:bg-border-dark my-4" />
