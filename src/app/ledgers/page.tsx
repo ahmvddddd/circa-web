@@ -66,12 +66,7 @@ export default function GlobalLedgersPage() {
             <Link
               key={ledger.id}
               href={`/ledgers/${ledger.id}`}
-              className="
-                block rounded-lg border border-border bg-surface
-                p-3 sm:p-4
-                transition-colors hover:bg-muted
-              "
-            >
+              className="block rounded-lg border border-border bg-surface p-3 sm:p-4 transition-colors hover:bg-muted">
               <div
                 className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
                 {/* Transaction / Group */}

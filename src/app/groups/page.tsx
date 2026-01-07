@@ -4,12 +4,14 @@
 import React from "react";
 import AppShell from "@/components/layout/AppShell";
 import GroupCard from "@/components/groups/GroupCard";
-import { PlusCircle } from "lucide-react";
+import EmptyState from "@/components/ui/EmptyState";
+import { groups } from "@/lib/groups";
+import { PlusCircle, Users } from "lucide-react";
 import Link from "next/link";
 
 const MaterialIcon = ({
   name,
-  sizeClass = "text-[10px]", // ↓ reduced from 20px
+  sizeClass = "text-[10px]",
 }: {
   name: string;
   sizeClass?: string;
@@ -17,73 +19,9 @@ const MaterialIcon = ({
   <span className={`material-symbols-outlined ${sizeClass}`}>{name}</span>
 );
 
-const groups = [
-  {
-    id: "001",
-    title: "EOY Party",
-    members: 32,
-    type: "Private",
-    role: "Admin",
-    joined: "Oct 24, 2023",
-    icon: "code",
-    gradient: "from-blue-500 to-cyan-400",
-  },
-  {
-    id: "002",
-    title: "Pacific Fund",
-    members: 14,
-    type: "Public",
-    role: "Creator",
-    joined: "Jan 12, 2024",
-    icon: "design_services",
-    gradient: "from-orange-400 to-pink-500",
-  },
-  {
-    id: "003",
-    title: "Marketing Squad",
-    members: 8,
-    type: "Private",
-    role: "Admin",
-    joined: "Feb 02, 2024",
-    icon: "rocket_launch",
-    gradient: "from-purple-500 to-indigo-600",
-  },
-  {
-    id: "004",
-    title: "Weekly Book Club",
-    members: 124,
-    type: "Public",
-    role: "Admin",
-    joined: "Mar 10, 2023",
-    icon: "menu_book",
-    gradient: "bg-[#29382f] border border-[#3a4d40]",
-  },
-  {
-    id: "005",
-    title: "Final Year Dinner",
-    members: 56,
-    type: "Public",
-    role: "Creator",
-    joined: "Apr 15, 2023",
-    icon: "hiking",
-    gradient: "from-emerald-400 to-teal-500",
-  },
-  {
-    id: "006",
-    title: "Gaming Nights",
-    members: 12,
-    type: "Private",
-    role: "Creator",
-    joined: "May 21, 2024",
-    icon: "sports_esports",
-    gradient: "from-yellow-400 to-orange-500",
-  },
-];
-
 const GroupsCta = () => (
   <Link href="groups/create">
     <button className="flex items-center gap-1.5 h-7 px-2.5 rounded-full bg-primary hover:bg-primary/90 text-white text-[10px] font-bold transition active:scale-95">
-      {/* ↓ icon reduced */}
       <PlusCircle size={12} strokeWidth={2} />
       <span className="hidden sm:inline">Create Group</span>
     </button>
@@ -93,6 +31,7 @@ const GroupsCta = () => (
 export default function GroupsPage() {
   const title = "My Groups";
   const subtitle = `You are a member of ${groups.length} groups`;
+  const isEmpty = groups.length === 0;
 
   return (
     <AppShell title={title} subtitle={subtitle} cta={<GroupsCta />}>
@@ -104,12 +43,23 @@ export default function GroupsPage() {
         />
       </div>
 
-      {/* Groups Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
-        {groups.map((group, index) => (
-          <GroupCard key={index} group={group} />
-        ))}
-      </div>
+      {/* Empty State */}
+      {isEmpty ? (
+        <EmptyState
+          icon={Users}
+          title="No groups yet"
+          description="Create a group to start collaborating with others."
+          actionLabel="Create your first group"
+          actionHref="/groups/create"
+        />
+      ) : (
+        /* Groups Grid */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+          {groups.map((group, index) => (
+            <GroupCard key={index} group={group} />
+          ))}
+        </div>
+      )}
     </AppShell>
   );
 }

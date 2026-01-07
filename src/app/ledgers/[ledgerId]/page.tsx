@@ -23,6 +23,9 @@ export default function LedgerDetailsPage() {
   if (!ledger) notFound();
 
   const isCredit = ledger.type === "CREDIT";
+  const signedAmount = isCredit
+  ? +ledger.amount
+  : -ledger.amount;
 
   return (
     <AppShell
@@ -45,7 +48,7 @@ export default function LedgerDetailsPage() {
               )}
             >
               {isCredit ? "+" : "-"}
-              {formatCurrency(ledger.amount)}
+              {formatCurrency(signedAmount)}
             </span>
           </div>
 
