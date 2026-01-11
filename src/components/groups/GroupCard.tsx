@@ -20,6 +20,8 @@ type GroupCardProps = {
 
 export default function GroupCard({ group }: GroupCardProps) {
   const isAdmin = group.role === "Admin";
+  const isCreator = group.role === "Creator";
+  const isPrivileged = isAdmin || isCreator;
 
   const iconContainerClasses = group.gradient.startsWith("bg")
     ? `size-8 rounded-xl flex items-center justify-center shadow-md ${group.gradient}`
@@ -31,7 +33,7 @@ export default function GroupCard({ group }: GroupCardProps) {
       className="group block focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-lg"
       aria-label={`View details for ${group.title}`}
     >
-      <div className="relative flex flex-col justify-between rounded-lg bg-[#1C1C26]/10 dark:bg-[#1C1C26] p-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg border border-transparent hover:border-primary/20">
+      <div className="relative flex flex-col justify-between rounded-lg bg-surface p-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg border border-border hover:border-primary/20">
         <div className="flex justify-between items-start mb-3">
           <div className={iconContainerClasses}>
 
@@ -40,7 +42,10 @@ export default function GroupCard({ group }: GroupCardProps) {
 
           <button
             aria-label="Group options"
-            onClick={(e) => e.preventDefault()}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             className="rounded-full p-1 text-gray-500 hover:text-white hover:bg-white/10 transition"
           >
             
@@ -60,13 +65,19 @@ export default function GroupCard({ group }: GroupCardProps) {
           <div className="flex items-center justify-between border-t border-white/10 pt-3">
             <span
               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-                isAdmin
-                  ? "bg-primary/20 text-primary"
-                  : "bg-gray-300 text-primary"
+                isCreator
+                  ? "bg-emerald-500/15 text-emerald-500"
+                  : isAdmin
+                  ? "bg-primary/15 text-primary"
+                  : "bg-muted text-muted-foreground"
               }`}
             >
-              {isAdmin && (
-                <span className="size-1 rounded-full bg-primary" />
+              {isPrivileged && (
+                <span
+                  className={`size-1 rounded-full ${
+                    isCreator ? "bg-emerald-500 text-emerald-600 dark:text-emerald-400" : "bg-primary"
+                  }`}
+                />
               )}
               {group.role}
             </span>

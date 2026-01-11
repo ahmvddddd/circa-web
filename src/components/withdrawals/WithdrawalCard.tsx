@@ -22,13 +22,7 @@ export default function WithdrawalCard({
 
   const CardContent = (
     <div
-      className="
-        flex flex-col md:flex-row md:items-center justify-between
-        gap-2 rounded-md border border-border
-        bg-surface/70 hover:bg-surface transition-colors
-        p-2
-      "
-    >
+      className="flex flex-col md:flex-row md:items-center justify-between gap-2 rounded-md border border-border bg-surface/70 hover:bg-surface transition-colors p-2">
       {/* Left */}
       <div className="flex flex-col md:flex-row md:items-center gap-2 flex-1">
         <div className="md:w-28">

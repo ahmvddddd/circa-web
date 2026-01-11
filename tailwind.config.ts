@@ -22,15 +22,24 @@ const config: Config = {
           dark: "#112117",
         },
 
-        card: {
-          light: "#E6E6EA",
-          dark: "#1C1C26",
-        },
+        cardLight: "#E6E6EA",
+        cardDark: "#1C1C26",
 
-        surface: {
-          light: "#ffffff",
-          dark: "#1a231e",
-        },
+        // card: {
+        //   light: "#E6E6EA",
+        //   dark: "#1C1C26",
+        // },
+
+        surfaceLight: "#ffffff",
+        surfaceDark: "#1a231e",
+
+        // surface: {
+        //   light: "#ffffff",
+        //   dark: "#1a231e",
+        // },
+        
+        borderLight: "#f4e7e7",
+        borderDark: "#3a2a2a",
 
         border: {
           light: "#f4e7e7",

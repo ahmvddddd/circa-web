@@ -21,7 +21,7 @@ export default function EmptyState({
   actionHref,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center text-center py-16 px-4 rounded-xl border border-dashed border-muted bg-muted/30">
+    <div className="flex flex-col items-center justify-center text-center py-16 px-4 rounded-xl border border-border bg-surface/70">
       {Icon && (
         <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <Icon size={18} />

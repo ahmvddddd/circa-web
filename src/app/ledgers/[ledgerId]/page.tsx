@@ -13,6 +13,7 @@ const formatCurrency = (amount: number) =>
     style: "currency",
     currency: "NGN",
     minimumFractionDigits: 0,
+    signDisplay: "always",
   }).format(amount);
 
 export default function LedgerDetailsPage() {
@@ -24,7 +25,7 @@ export default function LedgerDetailsPage() {
 
   const isCredit = ledger.type === "CREDIT";
   const signedAmount = isCredit
-  ? +ledger.amount
+  ? ledger.amount
   : -ledger.amount;
 
   return (
@@ -47,7 +48,6 @@ export default function LedgerDetailsPage() {
                 isCredit ? "text-green-500" : "text-red-500"
               )}
             >
-              {isCredit ? "+" : "-"}
               {formatCurrency(signedAmount)}
             </span>
           </div>
