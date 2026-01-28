@@ -35,6 +35,7 @@ const GroupActions = ({ groupId }: { groupId: string }) => (
     </button>
     </Link>
 
+    <Link href={`/groups/${groupId}/deposit`}>
     <button
       className="flex items-center justify-center h-9 w-9 sm:w-auto sm:px-4 rounded-lg bg-primary text-white text-[10px] font-bold hover:bg-primary/90 transition"
       aria-label="Make Deposit"
@@ -42,6 +43,7 @@ const GroupActions = ({ groupId }: { groupId: string }) => (
       <ArrowDownLeft className="sm:hidden" size={12} strokeWidth={2} />
       <span className="hidden sm:inline">Make Deposit</span>
     </button>
+    </Link>
   </div>
 );
 
@@ -137,8 +139,8 @@ export default function GroupDetailsPage() {
         </h3>
 
         <div className="grid grid-cols-2 xs:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link href={`/groups/${groupId}/withdrawals?status=approval_required`} className="block group transition sm:hover:scale-[1.01] active:scale-[0.99] focus:outline-none">
-            <StatusCard label="Approvals Required" value={2} icon="pending_actions" bg="bg-orange-100 dark:bg-orange-500/20" color="text-orange-600 dark:text-orange-400" />
+          <Link href={`/groups/${groupId}/withdrawals`} className="block group transition sm:hover:scale-[1.01] active:scale-[0.99] focus:outline-none">
+            <StatusCard label="All Withdrawals" value={2} icon="list_alt" bg="bg-orange-100 dark:bg-orange-500/20" color="text-orange-600 dark:text-orange-400" />
           </Link>
 
           <Link href={`/groups/${groupId}/withdrawals?status=pending`} className="block group transition sm:hover:scale-[1.01] active:scale-[0.99] focus:outline-none">

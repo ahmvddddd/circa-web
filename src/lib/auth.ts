@@ -10,7 +10,7 @@ export type AuthUser = {
 export async function getCurrentUser(): Promise<AuthUser | null> {
     
   return {
-    id: "user_1",
+    id: "Liam Johnson",
     email: "user@example.com",
     emailVerified: false,
   };

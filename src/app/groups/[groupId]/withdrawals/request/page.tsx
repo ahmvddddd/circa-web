@@ -29,14 +29,14 @@ export default function RequestWithdrawalPage() {
         {/* LEFT FORM */}
         <div className="lg:col-span-8 flex flex-col gap-4 order-2 lg:order-1">
           {/* Amount */}
-          <section className="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4">
+          <section className="rounded-xl border border-border bg-muted p-4">
             <h3 className="flex items-center gap-2 text-xs font-bold text-text-main-light dark:text-text-main-dark mb-4">
               <Wallet size={16} className="text-primary" />
               Withdrawal Amount
             </h3>
 
             <label className="flex flex-col gap-2">
-              <span className="text-xs text-text-sub-light dark:text-text-sub-dark">
+              <span className="text-[10px]">
                 Amount to withdraw
               </span>
 
@@ -47,17 +47,17 @@ export default function RequestWithdrawalPage() {
                 min={100}
                 max={AVAILABLE_BALANCE}
                 required
-                className="h-8 rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 text-sm font-bold text-text-main-light dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="h-8 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
               />
 
-              <p className="text-[10px] text-text-sub-light dark:text-text-sub-dark">
+              <p className="text-[10px]">
                 Daily limit: {formatCurrency(5_000_000)}
               </p>
             </label>
           </section>
 
           {/* Beneficiary */}
-          <section className="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-4">
+          <section className="rounded-xl border border-border bg-muted p-4">
             <h3 className="flex items-center gap-2 text-xs font-bold text-text-main-light dark:text-text-main-dark mb-4">
               <User size={16} className="text-primary" />
               Beneficiary Details
@@ -65,27 +65,27 @@ export default function RequestWithdrawalPage() {
 
             <div className="flex flex-col gap-5">
               <label className="flex flex-col gap-2">
-                <span className="text-xs text-text-sub-light dark:text-text-sub-dark">
+                <span className="text-[10px]">
                   Beneficiary Name
                 </span>
                 <input
                   type="text"
                   placeholder="e.g. Jane Doe"
                   required
-                  className="h-8 rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="h-8 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </label>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="flex flex-col gap-2">
-                  <span className="text-xs text-text-sub-light dark:text-text-sub-dark">
+                  <span className="text-[10px]">
                     Bank Name
                   </span>
 
                   <select
                     defaultValue=""
                     required
-                    className="h-8 rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="h-8 rounded-lg border border-gray-200 dark:border-white/10 bg-muted px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="" disabled>
                       Select bank
@@ -100,7 +100,7 @@ export default function RequestWithdrawalPage() {
                 </label>
 
                 <label className="flex flex-col gap-2">
-                  <span className="text-xs text-text-sub-light dark:text-text-sub-dark">
+                  <span className="text-[10px]">
                     Account Number
                   </span>
                   <input
@@ -110,23 +110,23 @@ export default function RequestWithdrawalPage() {
                     maxLength={10}
                     placeholder="0123456789"
                     required
-                    className="h-8 rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="h-8 rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
-                  <span className="text-[10px] text-text-sub-light dark:text-text-sub-dark">
+                  <span className="text-[10px]">
                     10 digits
                   </span>
                 </label>
               </div>
 
               <label className="flex flex-col gap-2">
-                <span className="text-xs text-text-sub-light dark:text-text-sub-dark">
+                <span className="text-[10px]">
                   Reason for Withdrawal
                 </span>
                 <textarea
                   placeholder="Briefly describe the purpose of this withdrawal..."
                   rows={4}
                   required
-                  className="rounded-lg border border-border-light dark:border-border-dark bg-muted px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  className="rounded-lg border border-gray-200 dark:border-white/10 bg-transparent px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </label>
             </div>
@@ -136,7 +136,7 @@ export default function RequestWithdrawalPage() {
           <div className="flex justify-end gap-3">
             <Link
               href={`/groups/${groupId}`}
-              className="px-5 py-3 rounded-lg text-xs font-bold text-text-sub-light dark:text-text-sub-dark hover:bg-gray-200 dark:hover:bg-white/20 transition"
+              className="px-5 py-3 rounded-lg text-xs font-bold bg-white/5 text-text-sub-light dark:text-text-sub-dark hover:bg-gray-200 dark:hover:bg-white/20 transition"
             >
               Cancel
             </Link>
@@ -154,23 +154,23 @@ export default function RequestWithdrawalPage() {
 
         {/* RIGHT SIDEBAR */}
         <div className="lg:col-span-4 flex flex-col gap-4 order-1 lg:order-2">
-          <div className="rounded-xl border border-border-light dark:border-border-dark bg-gradient-to-br from-surface-light to-card-light dark:from-surface-dark dark:to-card-dark p-6">
-            <p className="text-xs font-bold uppercase text-text-sub-light dark:text-text-sub-dark mb-2">
+          <div className="rounded-xl border border-border bg-muted p-6">
+            <p className="text-[10px]">
               Available Balance
             </p>
-            <p className="text-xl font-black text-text-main-light dark:text-white">
+            <p className="text-xl">
               {formatCurrency(AVAILABLE_BALANCE)}
             </p>
 
             <div className="h-px bg-border-light dark:bg-border-dark my-4" />
           </div>
 
-          <div className="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-6">
-            <h4 className="flex items-center gap-2 text-xs font-bold mb-2 text-text-main-light dark:text-white">
+          <div className="rounded-xl border border-border bg-muted p-6">
+            <h4 className="flex items-center gap-2 text-[xs font-bold mb-2 text-text-main-light dark:text-white]">
               <Info size={16} className="text-primary" />
               Important Note
             </h4>
-            <p className="text-xs text-text-sub-light dark:text-text-sub-dark leading-relaxed">
+            <p className="text-[10px]">
               Withdrawals are processed within 24 hours on business days. Ensure
               all beneficiary details are correct to avoid delays.
             </p>

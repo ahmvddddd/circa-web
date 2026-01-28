@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, ArrowUpRight, Users, Table } from "lucide-react";
+import { X, ArrowUpRight, ArrowDownLeft, Users, Table } from "lucide-react";
 import clsx from "clsx";
 
 type MobileSidebarProps = { open: boolean; onClose: () => void };
@@ -13,6 +13,7 @@ const navItems = [
   { label: "Groups", href: "/groups", icon: Users },
   { label: "Withdrawals", href: "/withdrawals", icon: ArrowUpRight },
   { label: "Ledgers", href: "/ledgers", icon: Table },
+  { label: "Deposit Tracking", href: "/deposit/tracking", icon: ArrowDownLeft },
 ];
 
 export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {

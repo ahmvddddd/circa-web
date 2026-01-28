@@ -1,8 +1,10 @@
 // src/app/groups/[groupId]/withdrawals/[withdrawalId]/page.tsx
 
 import AppShell from "@/components/layout/AppShell";
-import { withdrawals } from "@/lib/withdrawals";
+import { withdrawals,  } from "@/lib/withdrawals";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { requireAuth } from "@/lib/auth";
 
 type PageProps = {
   params: Promise<{
@@ -12,7 +14,9 @@ type PageProps = {
 };
 
 export default async function WithdrawalDetailsPage({ params }: PageProps) {
-  
+  // 🔐 Require authenticated user
+  const user = await requireAuth();
+
   const { groupId, withdrawalId } = await params;
 
   const withdrawal = withdrawals.find(
@@ -20,6 +24,11 @@ export default async function WithdrawalDetailsPage({ params }: PageProps) {
   );
 
   if (!withdrawal) return notFound();
+
+  const isRequester = user.id === withdrawal.requestedBy;
+  const isPending = withdrawal.status === "pending";
+
+  const showActions = !isRequester && isPending;
 
   return (
     <AppShell
@@ -49,21 +58,26 @@ export default async function WithdrawalDetailsPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Disabled Actions */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              <button
-                disabled
-                className="h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-semibold opacity-50 cursor-not-allowed"
-              >
-                Approve
-              </button>
-              <button
-                disabled
-                className="h-8 px-3 rounded-md bg-muted text-foreground text-xs font-semibold opacity-50 cursor-not-allowed"
-              >
-                Reject
-              </button>
-            </div>
+            {/* Actions */}
+            {showActions && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                <Link
+                  href={`/groups/${groupId}/withdrawals/${withdrawal.id}/approve`}
+                >
+                  <button
+                    className="h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-semibold"
+                  >
+                    Approve
+                  </button>
+                </Link>
+
+                <button
+                  className="h-8 px-3 rounded-md bg-destructive text-destructive-foreground text-xs font-semibold"
+                >
+                  Reject
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Details */}
@@ -133,43 +147,8 @@ export default async function WithdrawalDetailsPage({ params }: PageProps) {
             </h3>
             <p className="text-xs font-medium">{withdrawal.requestedBy}</p>
           </div>
-
-          
         </div>
       </div>
     </AppShell>
   );
 }
-
-
-// {/* Important Dates */}
-//           <div className="rounded-lg border border-border bg-surface p-3">
-//             <h3 className="mb-2 text-xs font-semibold text-foreground">
-//               Important Dates
-//             </h3>
-
-//             <ul className="space-y-2 text-[11px]">
-//               <li>
-//                 <p className="font-medium">Created</p>
-//                 <p className="text-muted-foreground">
-//                   {withdrawal.requestedAt}
-//                 </p>
-//               </li>
-
-//               {withdrawal.expiresAt && (
-//                 <li>
-//                   <p className="font-medium">Expires</p>
-//                   <p className="text-muted-foreground">
-//                     {withdrawal.expiresAt}
-//                   </p>
-//                 </li>
-//               )}
-
-//               <li>
-//                 <p className="font-medium text-muted-foreground">Executed</p>
-//                 <p className="text-muted-foreground">
-//                   {withdrawal.executedAt ?? "Not yet executed"}
-//                 </p>
-//               </li>
-//             </ul>
-//           </div>

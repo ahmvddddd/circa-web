@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, Users, LogOut, Table } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, Users, LogOut, Table } from "lucide-react";
 import clsx from "clsx";
 
 const navItems = [
   { label: "Groups", href: "/groups", icon: Users },
   { label: "Withdrawals", href: "/withdrawals", icon: ArrowUpRight },
   { label: "Ledgers", href: "/ledgers", icon: Table },
+    { label: "Deposit Tracking", href: "/deposit/tracking", icon: ArrowDownLeft },
 ];
 
 export default function Sidebar() {

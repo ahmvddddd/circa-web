@@ -119,7 +119,7 @@ export default function WithdrawalRequestSuccessPage() {
           </Link>
 
           <Link
-            href={`/groups/${groupId}/withdrawals?status=approval_required`}
+            href={`/groups/${groupId}/withdrawals`}
             className="px-6 py-3 rounded-lg border border-border-light dark:border-border-dark text-xs font-bold text-text-main-light dark:text-white text-center hover:bg-muted transition"
           >
             Back to withdrawals

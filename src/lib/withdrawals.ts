@@ -2,7 +2,6 @@
 export type ApprovalStatus = "approved" | "rejected" | "pending";
 
 export type WithdrawalStatus =
-  | "approval_required"
   | "pending"
   | "approved"
   | "declined"
