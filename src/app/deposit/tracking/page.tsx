@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 
 /* ---------------- Types ---------------- */
@@ -88,7 +89,9 @@ function DetailRow({
 
 /* ---------------- Page ---------------- */
 export default function GlobalDepositTrackingPage() {
-  const [token, setToken] = useState("");
+  const searchParams = useSearchParams();
+  const initialToken = searchParams.get("token") ?? "";
+  const [token, setToken] = useState(initialToken);
   const [deposit, setDeposit] = useState<Deposit | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
