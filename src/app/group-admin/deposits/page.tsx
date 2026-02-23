@@ -110,6 +110,7 @@
 
 // src/app/group-admin/deposits/page.tsx
 import AppShell from "@/components/layout/AppShell";
+import { authenticationFetch } from "@/lib/auth/authenticationFetch";
 
 type DepositStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
 
@@ -126,11 +127,10 @@ type AdminDeposit = {
 type PageError = "UNAUTHENTICATED" | "FORBIDDEN" | "FAILED" | null;
 
 async function getAdminDeposits(): Promise<AdminDeposit[]> {
-  const res = await fetch(
+  const res = await authenticationFetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/group-admin/all-deposits`,
     {
-      cache: "no-store",
-      credentials: "include",
+      method: "GET",
     }
   );
 

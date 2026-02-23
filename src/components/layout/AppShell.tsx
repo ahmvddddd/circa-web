@@ -1,10 +1,11 @@
 // src/components/layout/AppShell.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileSidebar from "@/components/layout/MobileSidebar";
 import PageHeader from "@/components/ui/PageHeader";
+import { checkGroupAdmin } from "@/lib/auth/checkGroupAdmin";
 
 type AppShellProps = {
   title: string;
@@ -13,6 +14,7 @@ type AppShellProps = {
   children: React.ReactNode;
 };
 
+
 export default function AppShell({
   title,
   subtitle,
@@ -20,6 +22,15 @@ export default function AppShell({
   children,
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+
+// to check admin status
+useEffect(() => {
+  async function initAuth() {
+    await checkGroupAdmin();
+  }
+
+  initAuth();
+}, []);
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark">
@@ -58,3 +69,5 @@ export default function AppShell({
     </div>
   );
 }
+
+

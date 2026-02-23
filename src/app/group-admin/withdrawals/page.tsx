@@ -1,43 +1,49 @@
 // src/app/group-admin/withdrawals/page.tsx
 import AppShell from "@/components/layout/AppShell";
+import Link from "next/link";
+import { authenticationFetch } from "@/lib/auth/authenticationFetch";
 
-type WithdrawalStatus = "PENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
+type WithdrawalStatus = "PENDING" | "APPROVED" | "DECLINED" | "PAID";
+
+type Beneficiary = {
+  account_name?: string;
+  bank_name?: string;
+  account_number?: string;
+};
 
 type AdminWithdrawal = {
   id: string;
-  public_read_token: string;
   group_name: string;
-  account_name: string;
-  bank_name: string;
+  amount_kobo: number;
+  beneficiary: Beneficiary;
   status: WithdrawalStatus;
   created_at: string;
 };
 
 type PageError = "UNAUTHENTICATED" | "FORBIDDEN" | "FAILED" | null;
 
-async function getAdminWithdrawals(): Promise<AdminWithdrawal[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/group-admin/all-withdrawals`,
+type Pagination = {
+  limit: number;
+  offset: number;
+  count: number;
+};
+
+async function getAdminWithdrawals(
+  limit: number,
+  offset: number
+): Promise<{ data: AdminWithdrawal[]; pagination: Pagination }> {
+  const res = await authenticationFetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/group-admin/all-withdrawals?limit=${limit}&offset=${offset}`,
     {
-      cache: "no-store",
-      credentials: "include",
+      method: "GET", // ✅ capitalise
     }
   );
 
-  if (res.status === 401) {
-    throw new Error("UNAUTHENTICATED");
-  }
+  if (res.status === 401) throw new Error("UNAUTHENTICATED");
+  if (res.status === 403) throw new Error("FORBIDDEN");
+  if (!res.ok) throw new Error("FAILED");
 
-  if (res.status === 403) {
-    throw new Error("FORBIDDEN");
-  }
-
-  if (!res.ok) {
-    throw new Error("FAILED");
-  }
-
-  const json = await res.json();
-  return json.data;
+  return res.json();
 }
 
 function StatusBadge({ status }: { status: WithdrawalStatus }) {
@@ -45,46 +51,45 @@ function StatusBadge({ status }: { status: WithdrawalStatus }) {
     "inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold";
 
   switch (status) {
-    case "COMPLETED":
+    case "PAID":
+      return <span className={`${base} bg-green-100 text-green-700`}>Paid</span>;
+    case "DECLINED":
+      return <span className={`${base} bg-red-100 text-red-700`}>Declined</span>;
+    case "APPROVED":
       return (
-        <span className={`${base} bg-green-100 text-green-700`}>
-          Completed
-        </span>
-      );
-    case "FAILED":
-      return (
-        <span className={`${base} bg-red-100 text-red-700`}>
-          Failed
-        </span>
-      );
-    case "CANCELLED":
-      return (
-        <span className={`${base} bg-gray-200 text-gray-700`}>
-          Cancelled
-        </span>
+        <span className={`${base} bg-blue-100 text-blue-700`}>Approved</span>
       );
     default:
       return (
-        <span className={`${base} bg-yellow-100 text-yellow-700`}>
-          Pending
-        </span>
+        <span className={`${base} bg-yellow-100 text-yellow-700`}>Pending</span>
       );
   }
 }
 
-export default async function GroupAdminWithdrawalsPage() {
+export default async function GroupAdminWithdrawalsPage({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
+  const page = Number(searchParams.page) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
   let withdrawals: AdminWithdrawal[] = [];
+  let pagination: Pagination | null = null;
   let error: PageError = null;
 
   try {
-    withdrawals = await getAdminWithdrawals();
+    const res = await getAdminWithdrawals(limit, offset);
+    withdrawals = res.data;
+    pagination = res.pagination;
   } catch (e) {
     error = (e as Error).message as PageError;
   }
 
   if (error === "UNAUTHENTICATED") {
     return (
-      <AppShell title="Group Withdrawals" subtitle="">
+      <AppShell title="Group Withdrawals">
         <p className="text-xs text-gray-500">
           Please sign in to view group withdrawals.
         </p>
@@ -94,7 +99,7 @@ export default async function GroupAdminWithdrawalsPage() {
 
   if (error === "FORBIDDEN") {
     return (
-      <AppShell title="Group Withdrawals" subtitle="">
+      <AppShell title="Group Withdrawals">
         <p className="text-xs text-gray-500">
           You need OWNER or TREASURER access in at least one group to view this
           page.
@@ -105,13 +110,16 @@ export default async function GroupAdminWithdrawalsPage() {
 
   if (error === "FAILED") {
     return (
-      <AppShell title="Group Withdrawals" subtitle="">
+      <AppShell title="Group Withdrawals">
         <p className="text-xs text-gray-500">
           Failed to load withdrawals. Please try again later.
         </p>
       </AppShell>
     );
   }
+
+  const hasNext = pagination && pagination.count === limit;
+  const hasPrev = page > 1;
 
   return (
     <AppShell
@@ -124,8 +132,8 @@ export default async function GroupAdminWithdrawalsPage() {
           <span>Account name</span>
           <span>Bank</span>
           <span>Status</span>
+          <span>Amount</span>
           <span>Created</span>
-          <span>Token</span>
         </div>
 
         <div className="space-y-3">
@@ -136,19 +144,17 @@ export default async function GroupAdminWithdrawalsPage() {
             >
               <p className="text-xs font-semibold">{w.group_name}</p>
 
-              <p className="text-[11px] md:text-xs">{w.account_name}</p>
-              <p className="text-[11px] md:text-xs">{w.bank_name}</p>
+              <p className="text-xs">{w.beneficiary?.account_name ?? "—"}</p>
+              <p className="text-xs">{w.beneficiary?.bank_name ?? "—"}</p>
 
-              <div className="md:justify-self-start">
-                <StatusBadge status={w.status} />
-              </div>
+              <StatusBadge status={w.status} />
 
-              <p className="text-[10px] md:text-xs text-gray-500">
-                {new Date(w.created_at).toLocaleString()}
+              <p className="text-xs font-medium">
+                ₦{(w.amount_kobo / 100).toLocaleString()}
               </p>
 
-              <p className="text-[10px] font-mono truncate">
-                {w.public_read_token}
+              <p className="text-[10px] text-gray-500">
+                {new Date(w.created_at).toLocaleString()}
               </p>
             </div>
           ))}
@@ -158,6 +164,29 @@ export default async function GroupAdminWithdrawalsPage() {
               No withdrawals found yet for your groups.
             </p>
           )}
+        </div>
+
+        {/* Pagination */}
+        <div className="mt-4 flex items-center justify-between">
+          <Link
+            href={`/group-admin/withdrawals?page=${page - 1}`}
+            className={`text-xs ${
+              !hasPrev ? "pointer-events-none text-gray-400" : "text-primary"
+            }`}
+          >
+            ← Previous
+          </Link>
+
+          <span className="text-xs text-gray-500">Page {page}</span>
+
+          <Link
+            href={`/group-admin/withdrawals?page=${page + 1}`}
+            className={`text-xs ${
+              !hasNext ? "pointer-events-none text-gray-400" : "text-primary"
+            }`}
+          >
+            Next →
+          </Link>
         </div>
       </section>
     </AppShell>
