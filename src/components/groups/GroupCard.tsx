@@ -1,8 +1,114 @@
-// //src/components/groups/GroupCard.tsx
+// // //src/components/groups/GroupCard.tsx
+// "use client";
+
+// import Link from "next/link";
+// import { Group } from "@/lib/groups";
+
+// const MaterialIcon = ({
+//   name,
+//   sizeClass = "text-[10px]",
+// }: {
+//   name: string;
+//   sizeClass?: string;
+// }) => (
+//   <span className={`material-symbols-outlined ${sizeClass}`}>{name}</span>
+// );
+
+// type GroupCardProps = {
+//   group: Group;
+// };
+
+// export default function GroupCard({ group }: GroupCardProps) {
+//   const isAdmin = group.role === "Admin";
+//   const isCreator = group.role === "Creator";
+//   const isPrivileged = isAdmin || isCreator;
+
+//   const iconContainerClasses = group.gradient.startsWith("bg")
+//     ? `size-8 rounded-xl flex items-center justify-center shadow-md ${group.gradient}`
+//     : `size-8 rounded-xl bg-gradient-to-br ${group.gradient} flex items-center justify-center shadow-md`;
+
+//   return (
+//     <Link
+//       href={`/groups/${group.id}`}
+//       className="group block focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-lg"
+//       aria-label={`View details for ${group.title}`}
+//     >
+//       <div className="relative flex flex-col justify-between rounded-lg bg-surface p-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg border border-border hover:border-primary/20">
+//         <div className="flex justify-between items-start mb-3">
+//           <div className={iconContainerClasses}>
+
+//             <MaterialIcon name={group.icon} sizeClass="text-white text-base" />
+//           </div>
+
+//           <button
+//             aria-label="Group options"
+//             onClick={(e) => {
+//               e.preventDefault();
+//               e.stopPropagation();
+//             }}
+//             className="rounded-full p-1 text-gray-500 hover:text-white hover:bg-white/10 transition"
+//           >
+            
+//             <MaterialIcon name="more_horiz" sizeClass="text-xs" />
+//           </button>
+//         </div>
+
+//         <div>
+//           <h3 className="text-sm font-bold text-dark dark:text-white mb-0.5 group-hover:text-primary transition-colors">
+//             {group.title}
+//           </h3>
+
+//           <p className="text-xs text-gray-400 mb-3">
+//             {group.members} Members • {group.type}
+//           </p>
+
+//           <div className="flex items-center justify-between border-t border-white/10 pt-3">
+//             <span
+//               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+//                 isCreator
+//                   ? "bg-emerald-500/15 text-emerald-500"
+//                   : isAdmin
+//                   ? "bg-primary/15 text-primary"
+//                   : "bg-muted text-muted-foreground"
+//               }`}
+//             >
+//               {isPrivileged && (
+//                 <span
+//                   className={`size-1 rounded-full ${
+//                     isCreator ? "bg-emerald-500 text-emerald-600 dark:text-emerald-400" : "bg-primary"
+//                   }`}
+//                 />
+//               )}
+//               {group.role}
+//             </span>
+
+//             <span className="hidden sm:block text-[10px] text-gray-500">
+//               Joined {group.joined}
+//             </span>
+//           </div>
+//         </div>
+//       </div>
+//     </Link>
+//   );
+// }
+
+//src/components/groups/GroupCard.tsx
 "use client";
 
 import Link from "next/link";
-import { Group } from "@/lib/groups";
+
+export type GroupCardGroup = {
+  id: string;
+  name: string;
+  my_role?: "OWNER" | "TREASURER" | "MEMBER";
+  joined_at?: string;
+
+  // Optional UI fields
+  gradient?: string;
+  icon?: string;
+  members?: number;
+  type?: string;
+};
 
 const MaterialIcon = ({
   name,
@@ -11,33 +117,60 @@ const MaterialIcon = ({
   name: string;
   sizeClass?: string;
 }) => (
-  <span className={`material-symbols-outlined ${sizeClass}`}>{name}</span>
+  <span className={`material-symbols-outlined ${sizeClass}`}>
+    {name}
+  </span>
 );
 
-type GroupCardProps = {
-  group: Group;
-};
 
-export default function GroupCard({ group }: GroupCardProps) {
-  const isAdmin = group.role === "Admin";
-  const isCreator = group.role === "Creator";
-  const isPrivileged = isAdmin || isCreator;
+export default function GroupCard({ group }: { group: GroupCardGroup }) {
 
-  const iconContainerClasses = group.gradient.startsWith("bg")
-    ? `size-8 rounded-xl flex items-center justify-center shadow-md ${group.gradient}`
-    : `size-8 rounded-xl bg-gradient-to-br ${group.gradient} flex items-center justify-center shadow-md`;
+  const roleLabel =
+    group.my_role === "OWNER"
+      ? "Creator"
+      : group.my_role === "TREASURER"
+      ? "Admin"
+      : "Member";
+
+  const isCreator = roleLabel === "Creator";
+  const isAdmin = roleLabel === "Admin";
+  const isPrivileged = isCreator || isAdmin;
+
+  const gradient =
+    group.gradient ?? "from-indigo-500 to-purple-600";
+
+  const icon = group.icon ?? "group";
+
+  const membersLabel =
+    typeof group.members === "number"
+      ? `${group.members} Members`
+      : "Members";
+
+  const typeLabel = group.type ?? "Group";
+
+  const joinedLabel = group.joined_at
+    ? new Date(group.joined_at).toLocaleDateString()
+    : "—";
+
+
+  const iconContainerClasses = gradient.startsWith("bg")
+    ? `size-8 rounded-xl flex items-center justify-center shadow-md ${gradient}`
+    : `size-8 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-md`;
 
   return (
     <Link
       href={`/groups/${group.id}`}
       className="group block focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-lg"
-      aria-label={`View details for ${group.title}`}
+      aria-label={`View details for ${group.name}`}
     >
       <div className="relative flex flex-col justify-between rounded-lg bg-surface p-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg border border-border hover:border-primary/20">
+        {/* Header */}
         <div className="flex justify-between items-start mb-3">
           <div className={iconContainerClasses}>
-
-            <MaterialIcon name={group.icon} sizeClass="text-white text-base" />
+            <MaterialIcon
+              name={icon}
+              sizeClass="text-white text-base"
+            />
           </div>
 
           <button
@@ -48,18 +181,18 @@ export default function GroupCard({ group }: GroupCardProps) {
             }}
             className="rounded-full p-1 text-gray-500 hover:text-white hover:bg-white/10 transition"
           >
-            
             <MaterialIcon name="more_horiz" sizeClass="text-xs" />
           </button>
         </div>
 
+        {/* Content */}
         <div>
           <h3 className="text-sm font-bold text-dark dark:text-white mb-0.5 group-hover:text-primary transition-colors">
-            {group.title}
+            {group.name}
           </h3>
 
           <p className="text-xs text-gray-400 mb-3">
-            {group.members} Members • {group.type}
+            {membersLabel} • {typeLabel}
           </p>
 
           <div className="flex items-center justify-between border-t border-white/10 pt-3">
@@ -75,15 +208,17 @@ export default function GroupCard({ group }: GroupCardProps) {
               {isPrivileged && (
                 <span
                   className={`size-1 rounded-full ${
-                    isCreator ? "bg-emerald-500 text-emerald-600 dark:text-emerald-400" : "bg-primary"
+                    isCreator
+                      ? "bg-emerald-500"
+                      : "bg-primary"
                   }`}
                 />
               )}
-              {group.role}
+              {roleLabel}
             </span>
 
             <span className="hidden sm:block text-[10px] text-gray-500">
-              Joined {group.joined}
+              Joined {joinedLabel}
             </span>
           </div>
         </div>

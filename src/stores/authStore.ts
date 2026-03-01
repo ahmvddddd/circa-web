@@ -48,3 +48,70 @@ export const authStore = {
     emit();
   },
 };
+
+// src/stores/authStore.ts
+
+// type AuthState = {
+//   accessToken: string | null;
+//   isGroupAdmin: boolean;
+//   authReady: boolean; // 👈 NEW
+// };
+
+// let state: AuthState = {
+//   accessToken: null,
+//   isGroupAdmin: false,
+//   authReady: false, // 👈 NEW
+// };
+
+// const listeners = new Set<() => void>();
+
+// function emit() {
+//   listeners.forEach((listener) => listener());
+// }
+
+// export const authStore = {
+//   subscribe(listener: () => void) {
+//     listeners.add(listener);
+//     return () => {listeners.delete(listener)};
+//   },
+
+//   // ---- access token ----
+//   getAccessToken() {
+//     return state.accessToken;
+//   },
+
+//   setAccessToken(token: string | null) {
+//     state.accessToken = token;
+//     emit();
+//   },
+
+//   // ---- group admin ----
+//   getIsGroupAdmin() {
+//     return state.isGroupAdmin;
+//   },
+
+//   setIsGroupAdmin(value: boolean) {
+//     state.isGroupAdmin = value;
+//     emit();
+//   },
+
+//   // ---- auth ready ----
+//   getAuthReady() {
+//     return state.authReady;
+//   },
+
+//   setAuthReady(value: boolean) {
+//     state.authReady = value;
+//     emit();
+//   },
+
+//   // ---- reset ----
+//   clear() {
+//     state = {
+//       accessToken: null,
+//       isGroupAdmin: false,
+//       authReady: false, // 👈 IMPORTANT: reset this too
+//     };
+//     emit();
+//   },
+// };
