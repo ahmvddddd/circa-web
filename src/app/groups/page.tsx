@@ -47,19 +47,7 @@ export default function GroupsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<PageError>(null);
 
-  // const [authReady, setAuthReady] = useState(
-  //   authStore.getAuthReady()
-  // ); //change
-
-  // // 👇 change
-  // useEffect(() => {
-  //   return authStore.subscribe(() => {
-  //     setAuthReady(authStore.getAuthReady());
-  //   });
-  // }, []);
-
   useEffect(() => {
-    // if (!authReady) return; //change
     let active = true;
 
     async function loadGroups() {

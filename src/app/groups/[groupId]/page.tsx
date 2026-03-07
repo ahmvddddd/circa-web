@@ -1,214 +1,638 @@
-//src/app/groups/[groupId]/page.tsx
+
+
+// src/app/groups/[groupId]/page.tsx
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useParams, useRouter } from "next/navigation";
+// import AppShell from "@/components/layout/AppShell";
+// import { authenticationFetch } from "@/lib/auth/authenticationFetch";
+
+// type GroupSummaryApi = {
+//   group_id: string;
+//   name: string;
+//   description: string | null;
+//   approvals_required: number;
+//   balance_kobo: number;
+//   counts: {
+//     members: number;
+//     deposits: number;
+//     pending_withdrawals: number;
+//     approved_unpaid: number;
+//     paid: number;
+//   };
+// };
+
+// type PageError = "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "FAILED" | null;
+
+// export default function GroupDetailsPage() {
+//   const router = useRouter();
+//   const params = useParams<{ groupId: string }>();
+//   const groupId = params.groupId;
+
+//   const [summary, setSummary] = useState<GroupSummaryApi | null>(null);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState<PageError>(null);
+
+//   useEffect(() => {
+//     let active = true;
+
+//     async function loadSummary() {
+//       if (!groupId) return;
+
+//       setLoading(true);
+//       setError(null);
+
+//       try {
+//         const res = await authenticationFetch(
+//           `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/group-summary`,
+//           { method: "GET" }
+//         );
+
+//         if (!active) return;
+
+//         if (res.status === 401) {
+//           setError("UNAUTHENTICATED");
+//           return;
+//         }
+//         if (res.status === 403) {
+//           setError("FORBIDDEN");
+//           return;
+//         }
+//         if (res.status === 404) {
+//           setError("NOT_FOUND");
+//           return;
+//         }
+//         if (!res.ok) {
+//           setError("FAILED");
+//           return;
+//         }
+
+//         const json: GroupSummaryApi = await res.json();
+//         setSummary(json);
+//       } catch {
+//         if (!active) return;
+//         setError("FAILED");
+//       } finally {
+//         if (!active) return;
+//         setLoading(false);
+//       }
+//     }
+
+//     loadSummary();
+
+//     return () => {
+//       active = false;
+//     };
+//   }, [groupId]);
+
+//   // Redirect if not authenticated
+//   useEffect(() => {
+//     if (error === "UNAUTHENTICATED" && groupId) {
+//       router.push(`/login?next=/groups/${groupId}`);
+//     }
+//   }, [error, router, groupId]);
+
+//   // ───────── Error states ─────────
+//   if (error === "FORBIDDEN") {
+//     return (
+//       <AppShell title="Group access">
+//         <p className="text-xs text-gray-500">
+//           You are not a member of this group. Speak to the owner or treasurer if you think this is a mistake.
+//         </p>
+//       </AppShell>
+//     );
+//   }
+
+//   if (error === "NOT_FOUND") {
+//     return (
+//       <AppShell title="Group not found">
+//         <p className="text-xs text-gray-500">
+//           We could not find this group. The link may be invalid or the group may have been removed.
+//         </p>
+//       </AppShell>
+//     );
+//   }
+
+//   if (error === "FAILED") {
+//     return (
+//       <AppShell title="Group details">
+//         <p className="text-xs text-red-500">
+//           Failed to load group details. Please try again later.
+//         </p>
+//       </AppShell>
+//     );
+//   }
+
+//   // ───────── Loading ─────────
+//   if (loading || !summary) {
+//     return (
+//       <AppShell title="Group details">
+//         <p className="text-xs text-gray-500">Loading group…</p>
+//       </AppShell>
+//     );
+//   }
+
+//   const balanceNaira = (summary.balance_kobo || 0) / 100;
+
+//   const subtitle = `${summary.counts.members} member${
+//     summary.counts.members === 1 ? "" : "s"
+//   } • ${summary.counts.deposits} deposit${
+//     summary.counts.deposits === 1 ? "" : "s"
+//   }`;
+
+//   return (
+//     <AppShell title={summary.name} subtitle={subtitle}>
+//       {/* Top summary: description + approvals + balance */}
+//       <section className="mb-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+//         <div className="lg:col-span-2 rounded-xl border border-border bg-muted p-4 space-y-2">
+//           <h2 className="text-sm font-semibold">About this group</h2>
+//           {summary.description ? (
+//             <p className="text-xs text-gray-600 dark:text-gray-400">
+//               {summary.description}
+//             </p>
+//           ) : (
+//             <p className="text-xs text-gray-500">
+//               No description has been added yet.
+//             </p>
+//           )}
+//           <p className="text-[11px] text-gray-500 mt-2">
+//             <span className="font-semibold">
+//               Approvals required for withdrawals:
+//             </span>{" "}
+//             {summary.approvals_required}
+//           </p>
+//         </div>
+
+//         <div className="rounded-xl border border-border bg-muted p-4 space-y-2">
+//           <h2 className="text-sm font-semibold">Group balance</h2>
+//           <p className="text-lg font-bold">
+//             ₦{balanceNaira.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+//           </p>
+//           <p className="text-[11px] text-gray-500">
+//             Based on all confirmed deposits and withdrawals.
+//           </p>
+//         </div>
+//       </section>
+
+//       {/* Stats row */}
+//       <section className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
+//         <StatCard
+//           label="Members"
+//           value={summary.counts.members.toString()}
+//         />
+//         <StatCard
+//           label="Deposits"
+//           value={summary.counts.deposits.toString()}
+//         />
+//         <StatCard
+//           label="Pending withdrawals"
+//           value={summary.counts.pending_withdrawals.toString()}
+//         />
+//         <StatCard
+//           label="Approved (unpaid)"
+//           value={summary.counts.approved_unpaid.toString()}
+//         />
+//       </section>
+
+//       {/* Withdrawals status breakdown */}
+//       <section className="mb-6 rounded-xl border border-border bg-muted p-4">
+//         <h2 className="text-sm font-semibold mb-2">
+//           Withdrawals summary
+//         </h2>
+//         <p className="text-[11px] text-gray-500 mb-3">
+//           This gives you a quick sense of how much activity is waiting on approval or payment.
+//         </p>
+//         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+//           <StatusBlock
+//             label="Pending approvals"
+//             value={summary.counts.pending_withdrawals}
+//             tone="amber"
+//           />
+//           <StatusBlock
+//             label="Approved, not yet paid"
+//             value={summary.counts.approved_unpaid}
+//             tone="blue"
+//           />
+//           <StatusBlock
+//             label="Paid withdrawals"
+//             value={summary.counts.paid}
+//             tone="green"
+//           />
+//         </div>
+//       </section>
+
+//       {/* Placeholders for future: activity + members list */}
+//       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+//         <div className="lg:col-span-2 rounded-xl border border-border bg-muted p-4">
+//           <h2 className="text-sm font-semibold mb-2">
+//             Recent activity
+//           </h2>
+//           <p className="text-xs text-gray-500">
+//             We can plug in a feed of recent deposits and withdrawals here once those endpoints are ready.
+//           </p>
+//         </div>
+
+//         <div className="rounded-xl border border-border bg-muted p-4">
+//           <h2 className="text-sm font-semibold mb-2">
+//             Members
+//           </h2>
+//           <p className="text-xs text-gray-500">
+//             A detailed member list and roles can be added here later using a group members endpoint.
+//           </p>
+//         </div>
+//       </section>
+//     </AppShell>
+//   );
+// }
+
+// function StatCard({ label, value }: { label: string; value: string }) {
+//   return (
+//     <div className="rounded-lg border border-border bg-background px-3 py-3">
+//       <p className="text-[10px] text-gray-500 mb-1">{label}</p>
+//       <p className="text-sm font-semibold">{value}</p>
+//     </div>
+//   );
+// }
+
+// function StatusBlock({
+//   label,
+//   value,
+//   tone,
+// }: {
+//   label: string;
+//   value: number;
+//   tone: "amber" | "blue" | "green";
+// }) {
+//   const toneClasses =
+//     tone === "amber"
+//       ? "bg-amber-50 text-amber-700"
+//       : tone === "blue"
+//       ? "bg-blue-50 text-blue-700"
+//       : "bg-green-50 text-green-700";
+
+//   return (
+//     <div className="{rounded-lg border border-border px-3 py-3 ${toneClasses}}">
+//       <p className="text-[10px] font-semibold mb-1">{label}</p>
+//       <p className="text-sm font-bold">{value}</p>
+//     </div>
+//   );
+// }
+
+
+
+// src/app/groups/[groupId]/page.tsx
 "use client";
 
-import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
-import { groups } from "@/lib/groups";
-import { ArrowDownLeft, ArrowUpRight, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { authenticationFetch } from "@/lib/auth/authenticationFetch";
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    minimumFractionDigits: 0,
-  }).format(amount);
+type GroupSummaryApi = {
+  group_id: string;
+  name: string;
+  description: string | null;
+  approvals_required: number;
+  balance_kobo: number;
+  counts: {
+    members: number;
+    deposits: number;
+    pending_withdrawals: number;
+    approved_unpaid: number;
+    paid: number;
+  };
+};
 
-const recentActivity = [
-  { id: 1, type: "credit", amount: 50000, reference: "DEP-10294", date: "Dec 20, 2025" },
-  { id: 2, type: "debit", amount: 12500, reference: "WDR-88321", date: "Dec 19, 2025" },
-  { id: 3, type: "credit", amount: 30000, reference: "DEP-10280", date: "Dec 18, 2025" },
-  { id: 4, type: "debit", amount: 8000, reference: "WDR-88210", date: "Dec 17, 2025" },
-  { id: 5, type: "credit", amount: 75000, reference: "DEP-10210", date: "Dec 16, 2025" },
-];
+type GroupMember = {
+  user_id: string;
+  name: string;
+  email: string;
+  role_in_group: "OWNER" | "TREASURER" | "MEMBER";
+  joined_at: string;
+};
 
-/* ---------------- CTA Buttons ---------------- */
-const GroupActions = ({ groupId }: { groupId: string }) => (
-  <div className="flex items-center gap-2 sm:gap-3">
-    <Link href={`/groups/${groupId}/withdrawals/request`}>
-    <button
-      className="flex items-center justify-center h-9 w-9 sm:w-auto sm:px-4 rounded-lg bg-gray-300 dark:bg-white/10 text-gray-700 dark:text-gray-200 text-[10px] font-bold hover:bg-gray-200 dark:hover:bg-white/20 transition"
-      aria-label="Request Withdrawal"
-    >
-      <ArrowUpRight className="sm:hidden" size={12} strokeWidth={2} />
-      <span className="hidden sm:inline">Request Withdrawal</span>
-    </button>
-    </Link>
+type PageError =
+  | "UNAUTHENTICATED"
+  | "FORBIDDEN"
+  | "NOT_FOUND"
+  | "FAILED"
+  | null;
 
-    <Link href={`/groups/${groupId}/deposit`}>
-    <button
-      className="flex items-center justify-center h-9 w-9 sm:w-auto sm:px-4 rounded-lg bg-primary text-white text-[10px] font-bold hover:bg-primary/90 transition"
-      aria-label="Make Deposit"
-    >
-      <ArrowDownLeft className="sm:hidden" size={12} strokeWidth={2} />
-      <span className="hidden sm:inline">Make Deposit</span>
-    </button>
-    </Link>
-  </div>
-);
-
-/* ---------------- Stat Card ---------------- */
-const StatCard = ({
-  label,
-  value,
-  subLabel,
-}: {
-  label: string;
-  value: string | number;
-  subLabel?: string;
-}) => (
-  <div className="flex flex-col gap-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1C1C26] p-6">
-    <p className="text-xs font-medium text-gray-500">{label}</p>
-    <p className="text-xl font-bold text-gray-900 dark:text-white">{value}</p>
-    {subLabel && <p className="text-[10px] text-gray-400">{subLabel}</p>}
-  </div>
-);
-
-/* ---------------- Status Card ---------------- */
-const StatusCard = ({
-  label,
-  value,
-  icon,
-  bg,
-  color,
-}: {
-  label: string;
-  value: number;
-  icon: string;
-  bg: string;
-  color: string;
-}) => (
-  <div
-  className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1C1C26] p-2 sm:p-4 w-full cursor-pointer transition group-hover:bg-muted group-hover:border-primary group-hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-primary"
->
-
-    <div className={`flex size-10 items-center justify-center rounded-lg ${bg} ${color}`}>
-      <span className="material-symbols-outlined text-sm">{icon}</span>
-    </div>
-
-    <div className="flex-1">
-      <p className="text-[10px] font-medium text-gray-500">{label}</p>
-      <p className="text-lg font-bold text-gray-800 dark:text-white">{value}</p>
-    </div>
-
-    <ChevronRight
-      className="hidden sm:block text-gray-400 group-hover:text-primary transition"
-      size={12}
-    />
-  </div>
-);
-
-/* ---------------- Page ---------------- */
 export default function GroupDetailsPage() {
-  const params = useParams();
-  const groupId = params.groupId as string;
+  const router = useRouter();
+  const params = useParams<{ groupId: string }>();
+  const groupId = params.groupId;
 
-  const group = groups.find((g) => g.id === groupId);
+  const [summary, setSummary] = useState<GroupSummaryApi | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<PageError>(null);
 
-  if (!group) {
+  const [members, setMembers] = useState<GroupMember[]>([]);
+  const [membersLoading, setMembersLoading] = useState(true);
+
+  // ───────── Load group summary ─────────
+  useEffect(() => {
+    let active = true;
+
+    async function loadSummary() {
+      if (!groupId) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await authenticationFetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/group-summary`,
+          { method: "GET" }
+        );
+
+        if (!active) return;
+
+        if (res.status === 401) {
+          setError("UNAUTHENTICATED");
+          return;
+        }
+        if (res.status === 403) {
+          setError("FORBIDDEN");
+          return;
+        }
+        if (res.status === 404) {
+          setError("NOT_FOUND");
+          return;
+        }
+        if (!res.ok) {
+          setError("FAILED");
+          return;
+        }
+
+        const json: GroupSummaryApi = await res.json();
+        setSummary(json);
+      } catch {
+        if (!active) return;
+        setError("FAILED");
+      } finally {
+        if (!active) return;
+        setLoading(false);
+      }
+    }
+
+    loadSummary();
+
+    return () => {
+      active = false;
+    };
+  }, [groupId]);
+
+  // ───────── Load group members ─────────
+  useEffect(() => {
+    let active = true;
+
+    async function loadMembers() {
+      if (!groupId) return;
+
+      try {
+        const res = await authenticationFetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/members`,
+          { method: "GET" }
+        );
+
+        if (!res.ok || !active) return;
+
+        const json = await res.json();
+        setMembers(json?.members ?? []);
+      } finally {
+        if (active) setMembersLoading(false);
+      }
+    }
+
+    loadMembers();
+
+    return () => {
+      active = false;
+    };
+  }, [groupId]);
+
+  // ───────── Redirect if not authenticated ─────────
+  useEffect(() => {
+    if (error === "UNAUTHENTICATED" && groupId) {
+      router.push(`/login?next=/groups/${groupId}`);
+    }
+  }, [error, router, groupId]);
+
+  // ───────── Error states ─────────
+  if (error === "FORBIDDEN") {
     return (
-      <AppShell title="Group Not Found" subtitle="">
-        <p className="text-red-500 text-xs">No group found for ID: {groupId}</p>
+      <AppShell title="Group access">
+        <p className="text-xs text-gray-500">
+          You are not a member of this group. Speak to the owner or treasurer if you think this is a mistake.
+        </p>
       </AppShell>
     );
   }
 
+  if (error === "NOT_FOUND") {
+    return (
+      <AppShell title="Group not found">
+        <p className="text-xs text-gray-500">
+          We could not find this group. The link may be invalid or the group may have been removed.
+        </p>
+      </AppShell>
+    );
+  }
+
+  if (error === "FAILED") {
+    return (
+      <AppShell title="Group details">
+        <p className="text-xs text-red-500">
+          Failed to load group details. Please try again later.
+        </p>
+      </AppShell>
+    );
+  }
+
+  // ───────── Loading ─────────
+  if (loading || !summary) {
+    return (
+      <AppShell title="Group details">
+        <p className="text-xs text-gray-500">Loading group…</p>
+      </AppShell>
+    );
+  }
+
+  const balanceNaira = (summary.balance_kobo || 0) / 100;
+
+  const subtitle = `${summary.counts.members} member${
+    summary.counts.members === 1 ? "" : "s"
+  } • ${summary.counts.deposits} deposit${
+    summary.counts.deposits === 1 ? "" : "s"
+  }`;
+
   return (
-    <AppShell 
-    title={group.title} 
-    subtitle="Group Summary" 
-    cta={<GroupActions groupId={groupId} />}>
-      <section className="grid grid-cols-1 xs:grid-cols-2 gap-3 md:gap-6 w-full">
-        <div className="col-span-2">
-          <StatCard
-            label="Balance"
-            value={formatCurrency(1_234_560)}
-            subLabel="Updated today, 10:42"
+    <AppShell title={summary.name} subtitle={subtitle}>
+      {/* Top summary */}
+      <section className="mb-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 rounded-xl border border-border bg-muted p-4 space-y-2">
+          <h2 className="text-sm font-semibold">About this group</h2>
+          {summary.description ? (
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              {summary.description}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-500">
+              No description has been added yet.
+            </p>
+          )}
+          <p className="text-[11px] text-gray-500 mt-2">
+            <span className="font-semibold">
+              Approvals required for withdrawals:
+            </span>{" "}
+            {summary.approvals_required}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-border bg-muted p-4 space-y-2">
+          <h2 className="text-sm font-semibold">Group balance</h2>
+          <p className="text-lg font-bold">
+            ₦{balanceNaira.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </p>
+          <p className="text-[11px] text-gray-500">
+            Based on all confirmed deposits and withdrawals.
+          </p>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <StatCard label="Members" value={summary.counts.members.toString()} />
+        <StatCard label="Deposits" value={summary.counts.deposits.toString()} />
+        <StatCard
+          label="Pending withdrawals"
+          value={summary.counts.pending_withdrawals.toString()}
+        />
+        <StatCard
+          label="Approved (unpaid)"
+          value={summary.counts.approved_unpaid.toString()}
+        />
+      </section>
+
+      {/* Withdrawals summary */}
+      <section className="mb-6 rounded-xl border border-border bg-muted p-4">
+        <h2 className="text-sm font-semibold mb-2">Withdrawals summary</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <StatusBlock
+            label="Pending approvals"
+            value={summary.counts.pending_withdrawals}
+            tone="amber"
+          />
+          <StatusBlock
+            label="Approved, not yet paid"
+            value={summary.counts.approved_unpaid}
+            tone="blue"
+          />
+          <StatusBlock
+            label="Paid withdrawals"
+            value={summary.counts.paid}
+            tone="green"
           />
         </div>
-
-        <div className="col-span-2 grid grid-cols-2 gap-2">
-          <StatCard label="Withdrawals (count)" value={12} />
-          <StatCard label="Deposits (count)" value={34} />
-        </div>
       </section>
 
-      <section className="mt-10">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-          Transaction Status
-        </h3>
+      {/* Activity + Members */}
+      <div className="rounded-xl border border-border bg-muted p-4 space-y-3">
+  <div className="flex items-center justify-between">
+  <h3 className="text-sm font-semibold">Members</h3>
 
-        <div className="grid grid-cols-2 xs:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link href={`/groups/${groupId}/withdrawals`} className="block group transition sm:hover:scale-[1.01] active:scale-[0.99] focus:outline-none">
-            <StatusCard label="All Withdrawals" value={2} icon="list_alt" bg="bg-orange-100 dark:bg-orange-500/20" color="text-orange-600 dark:text-orange-400" />
-          </Link>
+  <div className="flex items-center gap-3">
+    <p className="text-[10px] text-gray-500">
+      {members.length} member{members.length === 1 ? "" : "s"}
+    </p>
 
-          <Link href={`/groups/${groupId}/withdrawals?status=pending`} className="block group transition sm:hover:scale-[1.01] active:scale-[0.99] focus:outline-none">
-            <StatusCard label="Pending Withdrawals" value={5} icon="hourglass_top" bg="bg-yellow-100 dark:bg-yellow-500/20" color="text-yellow-600 dark:text-yellow-400" />
-          </Link>
+    <button
+      type="button"
+      onClick={() => router.push(`/groups/${groupId}/members`)}
+      className="text-[11px] font-semibold text-primary hover:underline"
+    >
+      View all
+    </button>
+  </div>
+</div>
 
-          <Link href={`/groups/${groupId}/withdrawals?status=approved`} className="block group transition sm:hover:scale-[1.01] active:scale-[0.99] focus:outline-none">
-            <StatusCard label="Approved Unpaid" value={3} icon="approval_delegation" bg="bg-blue-100 dark:bg-blue-500/20" color="text-blue-600 dark:text-blue-400" />
-          </Link>
+  {membersLoading && (
+    <p className="text-[11px] text-gray-500">Loading members…</p>
+  )}
 
-          <Link href={`/groups/${groupId}/withdrawals?status=paid`} className="block group transition sm:hover:scale-[1.01] active:scale-[0.99] focus:outline-none">
-            <StatusCard label="Paid Items" value={29} icon="task_alt" bg="bg-green-100 dark:bg-green-500/20" color="text-green-600 dark:text-green-400" />
-          </Link>
+  {!membersLoading && members.length === 0 && (
+    <p className="text-[11px] text-gray-500">
+      No members found yet for this group.
+    </p>
+  )}
+
+  {!membersLoading && members.length > 0 && (
+    <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+      {members.map((m) => (
+        <div
+          key={m.user_id}
+          className="flex items-center justify-between rounded-lg bg-background px-3 py-2"
+        >
+          <div>
+            <p className="text-xs font-semibold">
+              {m.name || m.email}
+            </p>
+            <p className="text-[10px] text-gray-500">
+              Joined {new Date(m.joined_at).toLocaleDateString()}
+            </p>
+          </div>
+
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+              m.role_in_group === "OWNER"
+                ? "bg-emerald-500/15 text-emerald-500"
+                : m.role_in_group === "TREASURER"
+                ? "bg-primary/15 text-primary"
+                : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {m.role_in_group}
+          </span>
         </div>
-      </section>
-
-      <section className="mt-10 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1C1C26] p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Recent Activity
-          </h3>
-          <Link href={`/groups/${groupId}/ledgers`} className="text-xs font-bold text-primary hover:underline">
-            View full ledger
-          </Link>
-        </div>
-
-        <div className="space-y-3">
-          {recentActivity.map((item) => {
-            const isCredit = item.type === "credit";
-
-            return (
-              <div key={item.id} className="flex items-center justify-between rounded-lg border border-gray-100 dark:border-white/5 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  {isCredit ? (
-                    <ArrowDownLeft size={12} className="text-green-600" />
-                  ) : (
-                    <ArrowUpRight size={12} className="text-red-600" />
-                  )}
-
-                  <div>
-                    <p className="text-xs font-medium text-gray-800 dark:text-gray-200">
-                      {item.reference}
-                    </p>
-                    <p className="text-[10px] text-gray-500">{item.date}</p>
-                  </div>
-                </div>
-
-                <p className={`text-xs font-bold ${isCredit ? "text-green-600" : "text-red-600"}`}>
-                  {isCredit ? "+" : "-"}
-                  {formatCurrency(item.amount)}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="mt-10 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1C1C26] p-6">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-          Group Details
-        </h3>
-        <p className="mt-2 text-xs text-gray-600 dark:text-gray-400 max-w-3xl">
-          This fund is for our annual ski trip to Aspen. All deposits are for shared expenses like lodging, lift tickets, and group dinners. Please submit withdrawal requests for reimbursements with receipts.
-        </p>
-        <div className="mt-4">
-          <button className="text-xs font-bold text-primary hover:underline">View Members</button>
-        </div>
-      </section>
+      ))}
+    </div>
+  )}
+</div>
     </AppShell>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-background px-3 py-3">
+      <p className="text-[10px] text-gray-500 mb-1">{label}</p>
+      <p className="text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function StatusBlock({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "amber" | "blue" | "green";
+}) {
+  const toneClasses =
+    tone === "amber"
+      ? "bg-amber-50 text-amber-700"
+      : tone === "blue"
+      ? "bg-blue-50 text-blue-700"
+      : "bg-green-50 text-green-700";
+
+  return (
+    <div className={`rounded-lg border border-border px-3 py-3 ${toneClasses}`}>
+      <p className="text-[10px] font-semibold mb-1">{label}</p>
+      <p className="text-sm font-bold">{value}</p>
+    </div>
   );
 }
