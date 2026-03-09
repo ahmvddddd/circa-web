@@ -212,12 +212,12 @@
 
 
 // src/app/groups/[groupId]/deposits/page.tsx
+
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import AppShell from "@/components/layout/AppShell";
-import { authenticationFetch } from "@/lib/auth/authenticationFetch";
 import { Copy, Check } from "lucide-react";
 import Link from "next/link";
 
@@ -265,114 +265,53 @@ const InfoRow = ({
 /* ---------------- Page ---------------- */
 export default function GroupDepositPage() {
   const params = useParams();
-  const router = useRouter();
   const groupId = params.groupId as string;
 
-  const [group, setGroup] = useState<any>(null);
   const [groupAccount, setGroupAccount] = useState<any>(null);
+  const [loadingAccount, setLoadingAccount] = useState(true);
+  const [accountError, setAccountError] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [trackingToken, setTrackingToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const [pageLoading, setPageLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  /* ---------------- Load APIs ---------------- */
+  /* ---------------- Fetch Group Deposit Account ---------------- */
   useEffect(() => {
-    let active = true;
-
-    async function loadData() {
+    const fetchAccount = async () => {
       try {
-        const [groupRes, accountRes] = await Promise.all([
-          authenticationFetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/group-summary`,
-            { method: "GET" }
-          ),
-          authenticationFetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/deposit-account`,
-            { method: "GET" }
-          ),
-        ]);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/deposit-account`
+        );
 
-        if (!active) return;
+        const data = await res.json();
 
-        if (groupRes.status === 401 || accountRes.status === 401) {
-          setError("UNAUTHENTICATED");
+        if (!res.ok) {
+          setAccountError(data.message || "Failed to load deposit account");
           return;
         }
 
-        if (groupRes.status === 404) {
-          setError("GROUP_NOT_FOUND");
-          return;
-        }
-
-        if (groupRes.ok) {
-          const groupJson = await groupRes.json();
-          setGroup(groupJson);
-        }
-
-        if (accountRes.ok) {
-          const accountJson = await accountRes.json();
-          setGroupAccount(accountJson);
-        }
+        setGroupAccount(data);
       } catch (err) {
-        console.error("Failed to load deposit page data", err);
-        setError("FAILED");
+        console.error(err);
+        setAccountError("Unable to fetch deposit account");
       } finally {
-        if (active) setPageLoading(false);
+        setLoadingAccount(false);
       }
-    }
-
-    loadData();
-
-    return () => {
-      active = false;
     };
+
+    fetchAccount();
   }, [groupId]);
 
-  /* ---------------- Redirect if unauthenticated ---------------- */
-  useEffect(() => {
-    if (error === "UNAUTHENTICATED" && groupId) {
-      router.push(`/login?next=/groups/${groupId}/deposits`);
-    }
-  }, [error, router, groupId]);
-
-  if (pageLoading) {
-    return (
-      <AppShell title="Deposit" subtitle="">
-        <p className="text-xs text-gray-500">Loading group…</p>
-      </AppShell>
-    );
-  }
-
-  if (error === "GROUP_NOT_FOUND" || !group) {
-    return (
-      <AppShell title="Group Not Found" subtitle="">
-        <p className="text-red-500 text-xs">No group found for ID: {groupId}</p>
-      </AppShell>
-    );
-  }
-
-  if (error === "FAILED") {
-    return (
-      <AppShell title="Deposit" subtitle="">
-        <p className="text-xs text-red-500">
-          Failed to load deposit data. Please try again later.
-        </p>
-      </AppShell>
-    );
-  }
-
-  const accountNumber =
-    groupAccount?.account_number ?? "Not available yet";
-
+  const accountNumber = groupAccount?.account_number ?? "Not available yet";
   const bankName = groupAccount?.bank_name ?? "—";
+  const accountName = groupAccount?.group_name
+    ? `Circa - ${groupAccount.group_name}`
+    : "—";
 
-  const accountName = groupAccount?.account_name ?? `Circa - ${group.name}`;
-
+  /* ---------------- Copy Tracking Token ---------------- */
   const handleCopyToken = async () => {
     if (!trackingToken) return;
+
     try {
       await navigator.clipboard.writeText(trackingToken);
       setCopied(true);
@@ -382,18 +321,20 @@ export default function GroupDepositPage() {
     }
   };
 
+  /* ---------------- Generate Tracking Token ---------------- */
   const handleStartTracking = async () => {
     if (!groupAccount) return;
 
     setLoading(true);
+
     try {
-      const res = await authenticationFetch(
+      const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/deposits/${groupId}/init`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            account_number: accountNumber,
+            account_number: groupAccount.account_number,
             account_name: accountName,
             bank_name: bankName,
           }),
@@ -413,16 +354,34 @@ export default function GroupDepositPage() {
     }
   };
 
+  /* ---------------- Loading State ---------------- */
+  if (loadingAccount) {
+    return (
+      <AppShell title="Loading..." subtitle="">
+        <p className="text-xs text-gray-500">Fetching deposit details...</p>
+      </AppShell>
+    );
+  }
+
+  /* ---------------- Error State ---------------- */
+  if (accountError) {
+    return (
+      <AppShell title="Deposit Account Unavailable" subtitle="">
+        <p className="text-red-500 text-xs">{accountError}</p>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell
-      title={`Deposit to ${group.name}`}
+      title={`Deposit to ${groupAccount?.group_name}`}
       subtitle="Fund the group via bank transfer"
     >
       {/* ---------------- Group Name ---------------- */}
       <section className="mb-8">
         <div className="rounded-xl border border-border bg-muted p-6">
           <p className="text-[10px] text-gray-500">Group Name</p>
-          <p className="text-xl">{group.name}</p>
+          <p className="text-xl">{groupAccount?.group_name}</p>
         </div>
       </section>
 

@@ -288,6 +288,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { authenticationFetch } from "@/lib/auth/authenticationFetch";
+import Link from "next/link";
 
 type GroupSummaryApi = {
   group_id: string;
@@ -505,7 +506,13 @@ export default function GroupDetailsPage() {
       {/* Stats */}
       <section className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
         <StatCard label="Members" value={summary.counts.members.toString()} />
-        <StatCard label="Deposits" value={summary.counts.deposits.toString()} />
+        {/* <StatCard label="Deposits" value={summary.counts.deposits.toString()} /> */}
+        <Link
+  href={`/groups/${groupId}/deposit`}
+  className="block hover:opacity-90 transition"
+>
+  <StatCard label="Deposits" value={summary.counts.deposits.toString()} />
+</Link>
         <StatCard
           label="Pending withdrawals"
           value={summary.counts.pending_withdrawals.toString()}

@@ -98,7 +98,7 @@
 // src/components/layout/AppShell.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Sidebar from "@/components/layout/Sidebar";
 import MobileSidebar from "@/components/layout/MobileSidebar";
 import PageHeader from "@/components/ui/PageHeader";
@@ -121,30 +121,32 @@ export default function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    // 🔐 Skip auth/role checks on public pages
-    if (
+  const isPublicPage = useMemo(() => {
+    return (
       pathname.startsWith("/login") ||
       pathname.startsWith("/register") ||
-      pathname.startsWith("/deposit/tracking")
-    ) {
-      return;
-    }
-
-    // Admin check (internally uses authenticationFetch)
-    checkGroupAdmin();
+      pathname.startsWith("/deposit/tracking") ||
+      /^\/groups\/[^/]+\/deposits$/.test(pathname)
+    );
   }, [pathname]);
+
+  useEffect(() => {
+    if (isPublicPage) return;
+    checkGroupAdmin();
+  }, [isPublicPage]);
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark">
       {/* Desktop Sidebar */}
-      <Sidebar />
+      {!isPublicPage && <Sidebar />}
 
       {/* Mobile Drawer */}
-      <MobileSidebar
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-      />
+      {!isPublicPage && (
+        <MobileSidebar
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+        />
+      )}
 
       {/* Mobile Header */}
       <div className="lg:hidden sticky top-0 z-30 bg-background/80">
@@ -152,12 +154,16 @@ export default function AppShell({
           title={title}
           subtitle={subtitle}
           cta={cta}
-          onMenuClick={() => setMobileOpen(true)}
+          onMenuClick={!isPublicPage ? () => setMobileOpen(true) : undefined}
         />
       </div>
 
       {/* Desktop Header */}
-      <header className="hidden lg:block sticky top-0 z-30 lg:ml-64 bg-background/80">
+      <header
+        className={`hidden lg:block sticky top-0 z-30 bg-background/80 ${
+          !isPublicPage ? "lg:ml-64" : ""
+        }`}
+      >
         <div className="max-w-[1080px] mx-auto">
           <PageHeader
             title={title}
@@ -169,7 +175,7 @@ export default function AppShell({
       </header>
 
       {/* Page Content */}
-      <main className="lg:pl-64">
+      <main className={!isPublicPage ? "lg:pl-64" : ""}>
         <div className="max-w-[1080px] mx-auto px-4 py-6">
           {children}
         </div>
