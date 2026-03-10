@@ -2,11 +2,9 @@
 
 // "use client";
 
-// import { useParams, useRouter } from "next/navigation";
-// import { useState } from "react";
+// import { useParams } from "next/navigation";
+// import { useState, useEffect } from "react";
 // import AppShell from "@/components/layout/AppShell";
-// import { groups } from "@/lib/groups";
-// import { groupAccounts } from "@/lib/groupAccounts";
 // import { Copy, Check } from "lucide-react";
 // import Link from "next/link";
 
@@ -54,32 +52,53 @@
 // /* ---------------- Page ---------------- */
 // export default function GroupDepositPage() {
 //   const params = useParams();
-//   const router = useRouter();
 //   const groupId = params.groupId as string;
 
-//   const group = groups.find((g) => g.id === groupId);
-//   const groupAccount = groupAccounts.find(
-//     (account) => account.groupId === groupId
-//   );
+//   const [groupAccount, setGroupAccount] = useState<any>(null);
+//   const [loadingAccount, setLoadingAccount] = useState(true);
+//   const [accountError, setAccountError] = useState<string | null>(null);
 
 //   const [loading, setLoading] = useState(false);
 //   const [trackingToken, setTrackingToken] = useState<string | null>(null);
 //   const [copied, setCopied] = useState(false);
 
-//   if (!group) {
-//     return (
-//       <AppShell title="Group Not Found" subtitle="">
-//         <p className="text-red-500 text-xs">No group found for ID: {groupId}</p>
-//       </AppShell>
-//     );
-//   }
+//   /* ---------------- Fetch Group Deposit Account ---------------- */
+//   useEffect(() => {
+//     const fetchAccount = async () => {
+//       try {
+//         const res = await fetch(
+//           `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/deposit-account`
+//         );
 
-//   const accountNumber = groupAccount?.accountNumber ?? "Not available yet";
-//   const bankName = groupAccount?.bankName ?? "—";
-//   const accountName = groupAccount?.accountName ?? `Circa - ${group.title}`;
+//         const data = await res.json();
 
+//         if (!res.ok) {
+//           setAccountError(data.message || "Failed to load deposit account");
+//           return;
+//         }
+
+//         setGroupAccount(data);
+//       } catch (err) {
+//         console.error(err);
+//         setAccountError("Unable to fetch deposit account");
+//       } finally {
+//         setLoadingAccount(false);
+//       }
+//     };
+
+//     fetchAccount();
+//   }, [groupId]);
+
+//   const accountNumber = groupAccount?.account_number ?? "Not available yet";
+//   const bankName = groupAccount?.bank_name ?? "—";
+//   const accountName = groupAccount?.group_name
+//     ? `Circa - ${groupAccount.group_name}`
+//     : "—";
+
+//   /* ---------------- Copy Tracking Token ---------------- */
 //   const handleCopyToken = async () => {
 //     if (!trackingToken) return;
+
 //     try {
 //       await navigator.clipboard.writeText(trackingToken);
 //       setCopied(true);
@@ -89,10 +108,12 @@
 //     }
 //   };
 
+//   /* ---------------- Generate Tracking Token ---------------- */
 //   const handleStartTracking = async () => {
 //     if (!groupAccount) return;
 
 //     setLoading(true);
+
 //     try {
 //       const res = await fetch(
 //         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/deposits/${groupId}/init`,
@@ -100,9 +121,9 @@
 //           method: "POST",
 //           headers: { "Content-Type": "application/json" },
 //           body: JSON.stringify({
-//             account_number: groupAccount.accountNumber,
-//             account_name: groupAccount.accountName,
-//             bank_name: groupAccount.bankName,
+//             account_number: groupAccount.account_number,
+//             account_name: accountName,
+//             bank_name: bankName,
 //           }),
 //         }
 //       );
@@ -120,16 +141,34 @@
 //     }
 //   };
 
+//   /* ---------------- Loading State ---------------- */
+//   if (loadingAccount) {
+//     return (
+//       <AppShell title="Loading..." subtitle="">
+//         <p className="text-xs text-gray-500">Fetching deposit details...</p>
+//       </AppShell>
+//     );
+//   }
+
+//   /* ---------------- Error State ---------------- */
+//   if (accountError) {
+//     return (
+//       <AppShell title="Deposit Account Unavailable" subtitle="">
+//         <p className="text-red-500 text-xs">{accountError}</p>
+//       </AppShell>
+//     );
+//   }
+
 //   return (
 //     <AppShell
-//       title={`Deposit to ${group.title}`}
+//       title={`Deposit to ${groupAccount?.group_name}`}
 //       subtitle="Fund the group via bank transfer"
 //     >
 //       {/* ---------------- Group Name ---------------- */}
 //       <section className="mb-8">
 //         <div className="rounded-xl border border-border bg-muted p-6">
 //           <p className="text-[10px] text-gray-500">Group Name</p>
-//           <p className="text-xl">{group.title}</p>
+//           <p className="text-xl">{groupAccount?.group_name}</p>
 //         </div>
 //       </section>
 
@@ -210,7 +249,6 @@
 // }
 
 
-
 // src/app/groups/[groupId]/deposits/page.tsx
 
 "use client";
@@ -220,6 +258,16 @@ import { useState, useEffect } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { Copy, Check } from "lucide-react";
 import Link from "next/link";
+
+/* ---------------- Types ---------------- */
+type GroupDepositAccount = {
+  group_id: string;
+  group_name: string;
+  account_number: string;
+  bank_name: string;
+  provider_reference: string;
+  created_at: string;
+};
 
 /* ---------------- Info Row ---------------- */
 const InfoRow = ({
@@ -267,13 +315,16 @@ export default function GroupDepositPage() {
   const params = useParams();
   const groupId = params.groupId as string;
 
-  const [groupAccount, setGroupAccount] = useState<any>(null);
+  const [groupAccount, setGroupAccount] =
+    useState<GroupDepositAccount | null>(null);
+
   const [loadingAccount, setLoadingAccount] = useState(true);
   const [accountError, setAccountError] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [trackingToken, setTrackingToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
 
   /* ---------------- Fetch Group Deposit Account ---------------- */
   useEffect(() => {
@@ -283,10 +334,18 @@ export default function GroupDepositPage() {
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/deposit-account`
         );
 
-        const data = await res.json();
+        let data: any = null;
+
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
 
         if (!res.ok) {
-          setAccountError(data.message || "Failed to load deposit account");
+          setAccountError(
+            data?.message || data?.error || "Failed to load deposit account"
+          );
           return;
         }
 
@@ -326,6 +385,7 @@ export default function GroupDepositPage() {
     if (!groupAccount) return;
 
     setLoading(true);
+    setTokenError(null);
 
     try {
       const res = await fetch(
@@ -341,14 +401,24 @@ export default function GroupDepositPage() {
         }
       );
 
-      const data = await res.json();
+      let data: any = null;
 
-      if (!res.ok || !data.public_read_token) {
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+
+      if (!res.ok || !data?.public_read_token) {
         console.error("Deposit init error:", data);
+        setTokenError("Failed to generate tracking token. Please try again.");
         return;
       }
 
       setTrackingToken(data.public_read_token);
+    } catch (err) {
+      console.error(err);
+      setTokenError("Failed to generate tracking token. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -445,6 +515,12 @@ export default function GroupDepositPage() {
       {/* ---------------- CTA ---------------- */}
       {!trackingToken && (
         <div className="mt-10 flex justify-center">
+          {tokenError && (
+            <p className="mb-4 text-xs text-red-500 text-center">
+              {tokenError}
+            </p>
+          )}
+
           <button
             type="button"
             onClick={handleStartTracking}

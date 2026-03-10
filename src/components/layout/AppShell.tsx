@@ -125,8 +125,7 @@ export default function AppShell({
     return (
       pathname.startsWith("/login") ||
       pathname.startsWith("/register") ||
-      pathname.startsWith("/deposit/tracking") ||
-      /^\/groups\/[^/]+\/deposits$/.test(pathname)
+      pathname.startsWith("/deposit/tracking")
     );
   }, [pathname]);
 
