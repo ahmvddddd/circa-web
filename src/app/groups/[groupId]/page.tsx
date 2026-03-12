@@ -1,12 +1,11 @@
-
-
-// src/app/groups/[groupId]/page.tsx
+// // src/app/groups/[groupId]/page.tsx
 // "use client";
 
 // import { useEffect, useState } from "react";
 // import { useParams, useRouter } from "next/navigation";
 // import AppShell from "@/components/layout/AppShell";
 // import { authenticationFetch } from "@/lib/auth/authenticationFetch";
+// import Link from "next/link";
 
 // type GroupSummaryApi = {
 //   group_id: string;
@@ -23,7 +22,20 @@
 //   };
 // };
 
-// type PageError = "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "FAILED" | null;
+// type GroupMember = {
+//   user_id: string;
+//   name: string;
+//   email: string;
+//   role_in_group: "OWNER" | "TREASURER" | "MEMBER";
+//   joined_at: string;
+// };
+
+// type PageError =
+//   | "UNAUTHENTICATED"
+//   | "FORBIDDEN"
+//   | "NOT_FOUND"
+//   | "FAILED"
+//   | null;
 
 // export default function GroupDetailsPage() {
 //   const router = useRouter();
@@ -34,6 +46,10 @@
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState<PageError>(null);
 
+//   const [members, setMembers] = useState<GroupMember[]>([]);
+//   const [membersLoading, setMembersLoading] = useState(true);
+
+//   // ───────── Load group summary ─────────
 //   useEffect(() => {
 //     let active = true;
 
@@ -86,7 +102,36 @@
 //     };
 //   }, [groupId]);
 
-//   // Redirect if not authenticated
+//   // ───────── Load group members ─────────
+//   useEffect(() => {
+//     let active = true;
+
+//     async function loadMembers() {
+//       if (!groupId) return;
+
+//       try {
+//         const res = await authenticationFetch(
+//           `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/members`,
+//           { method: "GET" }
+//         );
+
+//         if (!res.ok || !active) return;
+
+//         const json = await res.json();
+//         setMembers(json?.members ?? []);
+//       } finally {
+//         if (active) setMembersLoading(false);
+//       }
+//     }
+
+//     loadMembers();
+
+//     return () => {
+//       active = false;
+//     };
+//   }, [groupId]);
+
+//   // ───────── Redirect if not authenticated ─────────
 //   useEffect(() => {
 //     if (error === "UNAUTHENTICATED" && groupId) {
 //       router.push(`/login?next=/groups/${groupId}`);
@@ -143,7 +188,7 @@
 
 //   return (
 //     <AppShell title={summary.name} subtitle={subtitle}>
-//       {/* Top summary: description + approvals + balance */}
+//       {/* Top summary */}
 //       <section className="mb-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
 //         <div className="lg:col-span-2 rounded-xl border border-border bg-muted p-4 space-y-2">
 //           <h2 className="text-sm font-semibold">About this group</h2>
@@ -175,16 +220,16 @@
 //         </div>
 //       </section>
 
-//       {/* Stats row */}
+//       {/* Stats */}
 //       <section className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
-//         <StatCard
-//           label="Members"
-//           value={summary.counts.members.toString()}
-//         />
-//         <StatCard
-//           label="Deposits"
-//           value={summary.counts.deposits.toString()}
-//         />
+//         <StatCard label="Members" value={summary.counts.members.toString()} />
+//         {/* <StatCard label="Deposits" value={summary.counts.deposits.toString()} /> */}
+//         <Link
+//   href={`/groups/${groupId}/deposit`}
+//   className="block hover:opacity-90 transition"
+// >
+//   <StatCard label="Deposits" value={summary.counts.deposits.toString()} />
+// </Link>
 //         <StatCard
 //           label="Pending withdrawals"
 //           value={summary.counts.pending_withdrawals.toString()}
@@ -195,14 +240,9 @@
 //         />
 //       </section>
 
-//       {/* Withdrawals status breakdown */}
+//       {/* Withdrawals summary */}
 //       <section className="mb-6 rounded-xl border border-border bg-muted p-4">
-//         <h2 className="text-sm font-semibold mb-2">
-//           Withdrawals summary
-//         </h2>
-//         <p className="text-[11px] text-gray-500 mb-3">
-//           This gives you a quick sense of how much activity is waiting on approval or payment.
-//         </p>
+//         <h2 className="text-sm font-semibold mb-2">Withdrawals summary</h2>
 //         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
 //           <StatusBlock
 //             label="Pending approvals"
@@ -222,26 +262,68 @@
 //         </div>
 //       </section>
 
-//       {/* Placeholders for future: activity + members list */}
-//       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-//         <div className="lg:col-span-2 rounded-xl border border-border bg-muted p-4">
-//           <h2 className="text-sm font-semibold mb-2">
-//             Recent activity
-//           </h2>
-//           <p className="text-xs text-gray-500">
-//             We can plug in a feed of recent deposits and withdrawals here once those endpoints are ready.
-//           </p>
-//         </div>
+//       {/* Activity + Members */}
+//       <div className="rounded-xl border border-border bg-muted p-4 space-y-3">
+//   <div className="flex items-center justify-between">
+//   <h3 className="text-sm font-semibold">Members</h3>
 
-//         <div className="rounded-xl border border-border bg-muted p-4">
-//           <h2 className="text-sm font-semibold mb-2">
-//             Members
-//           </h2>
-//           <p className="text-xs text-gray-500">
-//             A detailed member list and roles can be added here later using a group members endpoint.
-//           </p>
+//   <div className="flex items-center gap-3">
+//     <p className="text-[10px] text-gray-500">
+//       {members.length} member{members.length === 1 ? "" : "s"}
+//     </p>
+
+//     <button
+//       type="button"
+//       onClick={() => router.push(`/groups/${groupId}/members`)}
+//       className="text-[11px] font-semibold text-primary hover:underline"
+//     >
+//       View all
+//     </button>
+//   </div>
+// </div>
+
+//   {membersLoading && (
+//     <p className="text-[11px] text-gray-500">Loading members…</p>
+//   )}
+
+//   {!membersLoading && members.length === 0 && (
+//     <p className="text-[11px] text-gray-500">
+//       No members found yet for this group.
+//     </p>
+//   )}
+
+//   {!membersLoading && members.length > 0 && (
+//     <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+//       {members.map((m) => (
+//         <div
+//           key={m.user_id}
+//           className="flex items-center justify-between rounded-lg bg-background px-3 py-2"
+//         >
+//           <div>
+//             <p className="text-xs font-semibold">
+//               {m.name || m.email}
+//             </p>
+//             <p className="text-[10px] text-gray-500">
+//               Joined {new Date(m.joined_at).toLocaleDateString()}
+//             </p>
+//           </div>
+
+//           <span
+//             className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+//               m.role_in_group === "OWNER"
+//                 ? "bg-emerald-500/15 text-emerald-500"
+//                 : m.role_in_group === "TREASURER"
+//                 ? "bg-primary/15 text-primary"
+//                 : "bg-muted text-muted-foreground"
+//             }`}
+//           >
+//             {m.role_in_group}
+//           </span>
 //         </div>
-//       </section>
+//       ))}
+//     </div>
+//   )}
+// </div>
 //     </AppShell>
 //   );
 // }
@@ -272,7 +354,7 @@
 //       : "bg-green-50 text-green-700";
 
 //   return (
-//     <div className="{rounded-lg border border-border px-3 py-3 ${toneClasses}}">
+//     <div className={`rounded-lg border border-border px-3 py-3 ${toneClasses}`}>
 //       <p className="text-[10px] font-semibold mb-1">{label}</p>
 //       <p className="text-sm font-bold">{value}</p>
 //     </div>
@@ -313,6 +395,16 @@ type GroupMember = {
   joined_at: string;
 };
 
+type GroupActivityItem = {
+  id: string;
+  type: "DEPOSIT" | "WITHDRAWAL";
+  status: string;
+  amount_kobo: number | null;
+  title: string;
+  subtitle: string;
+  created_at: string;
+};
+
 type PageError =
   | "UNAUTHENTICATED"
   | "FORBIDDEN"
@@ -331,6 +423,9 @@ export default function GroupDetailsPage() {
 
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [membersLoading, setMembersLoading] = useState(true);
+
+  const [activity, setActivity] = useState<GroupActivityItem[]>([]);
+  const [activityLoading, setActivityLoading] = useState(true);
 
   // ───────── Load group summary ─────────
   useEffect(() => {
@@ -385,7 +480,6 @@ export default function GroupDetailsPage() {
     };
   }, [groupId]);
 
-  // ───────── Load group members ─────────
   useEffect(() => {
     let active = true;
 
@@ -414,6 +508,35 @@ export default function GroupDetailsPage() {
     };
   }, [groupId]);
 
+  // ───────── Load recent activity ─────────
+  useEffect(() => {
+    let active = true;
+
+    async function loadActivity() {
+      if (!groupId) return;
+
+      try {
+        const res = await authenticationFetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/activity?limit=10`,
+          { method: "GET" }
+        );
+
+        if (!res.ok || !active) return;
+
+        const json = await res.json();
+        setActivity(json?.data ?? []);
+      } finally {
+        if (active) setActivityLoading(false);
+      }
+    }
+
+    loadActivity();
+
+    return () => {
+      active = false;
+    };
+  }, [groupId]);
+
   // ───────── Redirect if not authenticated ─────────
   useEffect(() => {
     if (error === "UNAUTHENTICATED" && groupId) {
@@ -421,7 +544,6 @@ export default function GroupDetailsPage() {
     }
   }, [error, router, groupId]);
 
-  // ───────── Error states ─────────
   if (error === "FORBIDDEN") {
     return (
       <AppShell title="Group access">
@@ -452,7 +574,6 @@ export default function GroupDetailsPage() {
     );
   }
 
-  // ───────── Loading ─────────
   if (loading || !summary) {
     return (
       <AppShell title="Group details">
@@ -468,6 +589,8 @@ export default function GroupDetailsPage() {
   } • ${summary.counts.deposits} deposit${
     summary.counts.deposits === 1 ? "" : "s"
   }`;
+
+  
 
   return (
     <AppShell title={summary.name} subtitle={subtitle}>
@@ -506,17 +629,19 @@ export default function GroupDetailsPage() {
       {/* Stats */}
       <section className="mb-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
         <StatCard label="Members" value={summary.counts.members.toString()} />
-        {/* <StatCard label="Deposits" value={summary.counts.deposits.toString()} /> */}
+
         <Link
-  href={`/groups/${groupId}/deposit`}
-  className="block hover:opacity-90 transition"
->
-  <StatCard label="Deposits" value={summary.counts.deposits.toString()} />
-</Link>
+          href={`/groups/${groupId}/deposit`}
+          className="block hover:opacity-90 transition"
+        >
+          <StatCard label="Deposits" value={summary.counts.deposits.toString()} />
+        </Link>
+
         <StatCard
           label="Pending withdrawals"
           value={summary.counts.pending_withdrawals.toString()}
         />
+
         <StatCard
           label="Approved (unpaid)"
           value={summary.counts.approved_unpaid.toString()}
@@ -526,17 +651,20 @@ export default function GroupDetailsPage() {
       {/* Withdrawals summary */}
       <section className="mb-6 rounded-xl border border-border bg-muted p-4">
         <h2 className="text-sm font-semibold mb-2">Withdrawals summary</h2>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <StatusBlock
             label="Pending approvals"
             value={summary.counts.pending_withdrawals}
             tone="amber"
           />
+
           <StatusBlock
             label="Approved, not yet paid"
             value={summary.counts.approved_unpaid}
             tone="blue"
           />
+
           <StatusBlock
             label="Paid withdrawals"
             value={summary.counts.paid}
@@ -546,69 +674,134 @@ export default function GroupDetailsPage() {
       </section>
 
       {/* Activity + Members */}
-      <div className="rounded-xl border border-border bg-muted p-4 space-y-3">
-  <div className="flex items-center justify-between">
-  <h3 className="text-sm font-semibold">Members</h3>
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Recent activity */}
+        <div className="lg:col-span-2 rounded-xl border border-border bg-muted p-4">
+          <h2 className="text-sm font-semibold mb-3">Recent activity</h2>
 
-  <div className="flex items-center gap-3">
-    <p className="text-[10px] text-gray-500">
-      {members.length} member{members.length === 1 ? "" : "s"}
-    </p>
+          {activityLoading && (
+            <p className="text-xs text-gray-500">Loading activity…</p>
+          )}
 
-    <button
-      type="button"
-      onClick={() => router.push(`/groups/${groupId}/members`)}
-      className="text-[11px] font-semibold text-primary hover:underline"
-    >
-      View all
-    </button>
-  </div>
-</div>
-
-  {membersLoading && (
-    <p className="text-[11px] text-gray-500">Loading members…</p>
-  )}
-
-  {!membersLoading && members.length === 0 && (
-    <p className="text-[11px] text-gray-500">
-      No members found yet for this group.
-    </p>
-  )}
-
-  {!membersLoading && members.length > 0 && (
-    <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-      {members.map((m) => (
-        <div
-          key={m.user_id}
-          className="flex items-center justify-between rounded-lg bg-background px-3 py-2"
-        >
-          <div>
-            <p className="text-xs font-semibold">
-              {m.name || m.email}
+          {!activityLoading && activity.length === 0 && (
+            <p className="text-xs text-gray-500">
+              No recent activity yet for this group.
             </p>
-            <p className="text-[10px] text-gray-500">
-              Joined {new Date(m.joined_at).toLocaleDateString()}
-            </p>
+          )}
+
+          {!activityLoading && activity.length > 0 && (
+            <div className="space-y-2">
+              {activity.slice(0, 5).map((item) => (
+                <div
+                  key={`${item.type}-${item.id}`}
+                  className="flex items-start justify-between rounded-lg bg-background px-3 py-3"
+                >
+                  <div>
+                    <p className="text-xs font-semibold">{item.title}</p>
+                    <p className="text-[10px] text-gray-500">{item.subtitle}</p>
+                    <p className="text-[10px] text-gray-500 mt-1">
+                      {new Date(item.created_at).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        item.type === "DEPOSIT"
+                          ? "bg-green-500/15 text-green-500"
+                          : "bg-blue-500/15 text-blue-500"
+                      }`}
+                    >
+                      {item.type}
+                    </span>
+
+                    <p className="mt-1 text-[10px] text-gray-500">
+                      {formatStatus(item.status)}
+                    </p>
+
+                    {item.amount_kobo !== null && (
+                      <p className="text-xs font-semibold mt-1">
+                        ₦{(item.amount_kobo / 100).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Members preview */}
+        <div className="rounded-xl border border-border bg-muted p-4 space-y-3">
+          {/* existing members block unchanged */}
+
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">Members</h3>
+
+            <div className="flex items-center gap-3">
+              <p className="text-[10px] text-gray-500">
+                {members.length} member{members.length === 1 ? "" : "s"}
+              </p>
+
+              <button
+                type="button"
+                onClick={() => router.push(`/groups/${groupId}/members`)}
+                className="text-[11px] font-semibold text-primary hover:underline"
+              >
+                View all
+              </button>
+            </div>
           </div>
 
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-              m.role_in_group === "OWNER"
-                ? "bg-emerald-500/15 text-emerald-500"
-                : m.role_in_group === "TREASURER"
-                ? "bg-primary/15 text-primary"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {m.role_in_group}
-          </span>
+          {membersLoading && (
+            <p className="text-[11px] text-gray-500">Loading members…</p>
+          )}
+
+          {!membersLoading && members.length === 0 && (
+            <p className="text-[11px] text-gray-500">
+              No members found yet for this group.
+            </p>
+          )}
+
+          {!membersLoading && members.length > 0 && (
+            <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+              {members.map((m) => (
+                <div
+                  key={m.user_id}
+                  className="flex items-center justify-between rounded-lg bg-background px-3 py-2"
+                >
+                  <div>
+                    <p className="text-xs font-semibold">
+                      {m.name || m.email}
+                    </p>
+                    <p className="text-[10px] text-gray-500">
+                      Joined {new Date(m.joined_at).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                      m.role_in_group === "OWNER"
+                        ? "bg-emerald-500/15 text-emerald-500"
+                        : m.role_in_group === "TREASURER"
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {m.role_in_group}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      ))}
-    </div>
-  )}
-</div>
+      </section>
     </AppShell>
   );
+}
+
+function formatStatus(status: string) {
+  return status.charAt(0) + status.slice(1).toLowerCase();
 }
 
 function StatCard({ label, value }: { label: string; value: string }) {
