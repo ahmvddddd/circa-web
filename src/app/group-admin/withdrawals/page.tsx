@@ -28,6 +28,11 @@ type Pagination = {
   count: number;
 };
 
+// Next.js 15/16 Page Props interface
+type PageProps = {
+  searchParams: Promise<{ page?: string }>;
+};
+
 async function getAdminWithdrawals(
   limit: number,
   offset: number
@@ -35,7 +40,7 @@ async function getAdminWithdrawals(
   const res = await authenticationFetch(
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/group-admin/all-withdrawals?limit=${limit}&offset=${offset}`,
     {
-      method: "GET", // ✅ capitalise
+      method: "GET",
     }
   );
 
@@ -68,10 +73,10 @@ function StatusBadge({ status }: { status: WithdrawalStatus }) {
 
 export default async function GroupAdminWithdrawalsPage({
   searchParams,
-}: {
-  searchParams: { page?: string };
-}) {
-  const page = Number(searchParams.page) || 1;
+}: PageProps) {
+  // ✅ Await searchParams before accessing properties
+  const resolvedSearchParams = await searchParams;
+  const page = Number(resolvedSearchParams.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
 
