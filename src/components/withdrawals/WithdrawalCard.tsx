@@ -39,7 +39,7 @@ const formatBeneficiary = (
     const { name, bank_name, account_number } = beneficiary;
     if (name && bank_name) return `${name} (${bank_name})`;
     if (name) return name;
-    if (account_number && bank_name) return `${account_number} - ${bank_name}`;
+    if (account_number && bank_name) return `${account_number} (${bank_name})`;
     if (account_number) return account_number;
   }
   return "—";

@@ -66,11 +66,11 @@ export default function LedgerDetailsPage() {
             </span>
 
             {/* Status */}
-            {ledger.status && (
+            {/* {ledger.status && (
               <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold">
                 {ledger.status}
               </span>
-            )}
+            )} */}
 
             {/* Date */}
             <span className="text-xs text-muted-foreground">

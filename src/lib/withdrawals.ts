@@ -50,3 +50,24 @@ export type Withdrawal = {
   approvals?: WithdrawalApprovals;
   [key: string]: any;
 };
+
+export const withdrawals: Withdrawal[] = [
+  {
+    id: "1",
+    group_name: "Community Savings",
+    amount: 25000,
+    beneficiary: "Alice Johnson",
+    status: "pending",
+    requested_by: "Bob Smith",
+    created_at: "2026-06-01",
+  },
+  {
+    id: "2",
+    group_name: "Investment Club",
+    amount: 150000,
+    beneficiary: "Acme Corp",
+    status: "approved",
+    requested_by: "Charlie Brown",
+    created_at: "2026-06-03",
+  },
+];

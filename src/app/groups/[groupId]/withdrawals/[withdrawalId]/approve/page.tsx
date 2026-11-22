@@ -5,7 +5,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import AppShell from "@/components/layout/AppShell";
-import { withdrawals } from "@/lib/withdrawals";
+import { Withdrawal } from "@/lib/withdrawals";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("en-NG", {
@@ -14,12 +14,18 @@ const formatCurrency = (amount: number) =>
     minimumFractionDigits: 0,
   }).format(amount);
 
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat("en-NG", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-  }).format(new Date(date));
+const formatDate = (dateString?: string) => {
+  if (!dateString) return "N/A";
+  try {
+    return new Intl.DateTimeFormat("en-NG", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    }).format(new Date(dateString));
+  } catch {
+    return dateString;
+  }
+};
 
 export default function ApproveWithdrawalPage() {
   const params = useParams();
@@ -32,8 +38,26 @@ export default function ApproveWithdrawalPage() {
 
   const [loading, setLoading] = useState<"approve" | "reject" | null>(null);
 
-  const withdrawal = withdrawals.find(
-    (w) => w.id === withdrawalId && w.groupId === groupId
+  // Mock withdrawals list matching the dynamic route params
+  const withdrawalsList: Withdrawal[] = [
+    {
+      id: withdrawalId,
+      groupId: groupId,
+      group_id: groupId,
+      amount: 50000,
+      beneficiary: {
+        name: "Adekunle Gold",
+        bank_name: "Guaranty Trust Bank",
+        account_number: "0123456789",
+      },
+      requestedBy: "Oluwaseun Adeyemi",
+      requestedAt: new Date().toISOString(),
+      status: "pending",
+    },
+  ];
+
+  const withdrawal = withdrawalsList.find(
+    (w: Withdrawal) => String(w.id) === withdrawalId && (w.groupId === groupId || w.group_id === groupId)
   );
 
   const handleAction = async (action: "approve" | "reject") => {
@@ -55,6 +79,15 @@ export default function ApproveWithdrawalPage() {
       </AppShell>
     );
   }
+
+  const requesterName = withdrawal.requestedBy || withdrawal.requested_by || withdrawal.requester_name || "Unknown";
+  const requestDate = withdrawal.requestedAt || withdrawal.created_at || new Date().toISOString();
+  const withdrawalAmount = withdrawal.amount ?? (withdrawal.amount_kobo ? withdrawal.amount_kobo / 100 : 0);
+  
+  const beneficiaryDisplay = 
+    typeof withdrawal.beneficiary === "string"
+      ? withdrawal.beneficiary
+      : `${withdrawal.beneficiary.name || "N/A"} (${withdrawal.beneficiary.bank_name || "Bank"}, ${withdrawal.beneficiary.account_number || "A/C"})`;
 
   return (
     <AppShell
@@ -78,28 +111,28 @@ export default function ApproveWithdrawalPage() {
           <div className="flex justify-between">
             <span className="text-gray-500">Requested by</span>
             <span className="font-medium text-gray-900 dark:text-white">
-              {withdrawal.requestedBy}
+              {requesterName}
             </span>
           </div>
 
           <div className="flex justify-between">
             <span className="text-gray-500">Amount</span>
             <span className="font-bold text-red-600">
-              {formatCurrency(withdrawal.amount)}
+              {formatCurrency(withdrawalAmount)}
             </span>
           </div>
 
           <div className="flex justify-between">
             <span className="text-gray-500">Beneficiary</span>
             <span className="font-medium text-gray-900 dark:text-white">
-              {withdrawal.beneficiary}
+              {beneficiaryDisplay}
             </span>
           </div>
 
           <div className="flex justify-between">
             <span className="text-gray-500">Requested on</span>
             <span className="font-medium text-gray-900 dark:text-white">
-              {formatDate(withdrawal.requestedAt)}
+              {formatDate(requestDate)}
             </span>
           </div>
         </div>

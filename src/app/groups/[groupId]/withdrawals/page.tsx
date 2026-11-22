@@ -2,20 +2,15 @@
 "use client";
 
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
 import WithdrawalCard from "@/components/withdrawals/WithdrawalCard";
-import { authenticationFetch } from "@/lib/auth/authenticationFetch";
+import { withdrawalsService, PaginationMeta } from "@/lib/services/withdrawalsService";
 import { Withdrawal } from "@/lib/withdrawals";
+import { ApiError } from "@/lib/api/error-handler";
+import { useAuth } from "@/lib/hooks/useAuth";
 import clsx from "clsx";
-
-type PaginationMeta = {
-  page: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
-};
 
 type PageError = "UNAUTHENTICATED" | "FORBIDDEN" | "FAILED" | null;
 
@@ -49,6 +44,7 @@ export default function GroupWithdrawalsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { isInitialized, isAuthenticated, initializationError } = useAuth();
 
   const groupId = (params?.groupId as string) ?? "";
   const status = searchParams.get("status");
@@ -64,69 +60,74 @@ export default function GroupWithdrawalsPage() {
     totalPages: 1,
   });
 
+  const requestSeqRef = useRef<number>(0);
+
   const fetchWithdrawals = useCallback(
-    async (pageToFetch: number, activeSignal = { active: true }) => {
+    async (pageToFetch: number) => {
       if (!groupId) return;
 
+      const currentSeq = ++requestSeqRef.current;
       setLoading(true);
       setError(null);
 
       try {
-        const res = await authenticationFetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/groups/${groupId}/withdrawals?page=${pageToFetch}&pageSize=20`,
-          { method: "GET" }
+        const result = await withdrawalsService.getGroupWithdrawals(
+          groupId,
+          pageToFetch,
+          20,
+          status
         );
 
-        if (!activeSignal.active) return;
+        if (currentSeq !== requestSeqRef.current) return;
 
-        if (res.status === 401) {
-          setError("UNAUTHENTICATED");
-          return;
+        setWithdrawalsList(result.withdrawals);
+        setPagination(result.pagination);
+      } catch (err: unknown) {
+        if (currentSeq !== requestSeqRef.current) return;
+
+        if (err instanceof ApiError) {
+          if (err.status === 401) {
+            setError("UNAUTHENTICATED");
+            return;
+          }
+          if (err.status === 403) {
+            setError("FORBIDDEN");
+            return;
+          }
         }
-
-        if (res.status === 403) {
-          setError("FORBIDDEN");
-          return;
-        }
-
-        if (!res.ok) {
-          setError("FAILED");
-          return;
-        }
-
-        const json = await res.json().catch(() => null);
-
-        const fetchedWithdrawals: Withdrawal[] = json?.data?.withdrawals ?? [];
-        const meta: PaginationMeta = json?.data?.pagination ?? {
-          page: pageToFetch,
-          pageSize: 20,
-          total: fetchedWithdrawals.length,
-          totalPages: 1,
-        };
-
-        setWithdrawalsList(fetchedWithdrawals);
-        setPagination(meta);
-      } catch (err) {
-        console.error("Error loading group withdrawals:", err);
-        if (!activeSignal.active) return;
         setError("FAILED");
       } finally {
-        if (activeSignal.active) {
+        if (currentSeq === requestSeqRef.current) {
           setLoading(false);
         }
       }
     },
-    [groupId]
+    [groupId, status]
   );
 
   useEffect(() => {
-    const activeSignal = { active: true };
-    fetchWithdrawals(1, activeSignal);
+    if (!isInitialized) {
+      requestSeqRef.current++;
+      if (initializationError) {
+        setLoading(false);
+        setError("FAILED");
+      }
+      return;
+    }
+
+    if (!isAuthenticated) {
+      requestSeqRef.current++;
+      setLoading(false);
+      setError("UNAUTHENTICATED");
+      return;
+    }
+
+    fetchWithdrawals(1);
 
     return () => {
-      activeSignal.active = false;
+      requestSeqRef.current++;
     };
-  }, [fetchWithdrawals]);
+  }, [isInitialized, isAuthenticated, initializationError, fetchWithdrawals]);
 
   useEffect(() => {
     if (error === "UNAUTHENTICATED") {
@@ -179,11 +180,6 @@ export default function GroupWithdrawalsPage() {
     ["declined", "Declined"],
   ];
 
-  const filteredWithdrawals = withdrawalsList.filter((w) => {
-    if (!status) return true;
-    return w.status?.toLowerCase() === status.toLowerCase();
-  });
-
   return (
     <AppShell title="Group Withdrawals" subtitle={subtitle}>
       <div className="flex min-h-[calc(100vh-8rem)] flex-col">
@@ -200,11 +196,12 @@ export default function GroupWithdrawalsPage() {
                     ? `/groups/${groupId}/withdrawals?status=${key}`
                     : `/groups/${groupId}/withdrawals`
                 }
-                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-opacity ${
+                className={clsx(
+                  "rounded-full px-4 py-1.5 text-sm font-semibold transition-opacity",
                   isActive
                     ? "bg-primary text-primary-foreground hover:opacity-80"
                     : "bg-muted text-muted-foreground hover:opacity-70"
-                }`}
+                )}
               >
                 {label}
               </Link>
@@ -218,12 +215,12 @@ export default function GroupWithdrawalsPage() {
             <p className="py-6 text-center text-xs text-muted-foreground">
               Loading withdrawals...
             </p>
-          ) : filteredWithdrawals.length === 0 ? (
+          ) : withdrawalsList.length === 0 ? (
             <p className="py-6 text-center text-xs text-muted-foreground">
               No withdrawals found for this filter.
             </p>
           ) : (
-            filteredWithdrawals.map((withdrawal) => (
+            withdrawalsList.map((withdrawal) => (
               <Link
                 key={withdrawal.id}
                 href={`/groups/${groupId}/withdrawals/${withdrawal.id}`}
@@ -236,7 +233,7 @@ export default function GroupWithdrawalsPage() {
         </div>
 
         {/* Pagination */}
-        {!loading && !error && filteredWithdrawals.length > 0 && (
+        {!loading && !error && withdrawalsList.length > 0 && (
           <div className="mt-auto pt-6 flex items-center justify-center gap-1">
             {getPaginationRange(pagination.page, pagination.totalPages).map(
               (pageItem, i) => {
