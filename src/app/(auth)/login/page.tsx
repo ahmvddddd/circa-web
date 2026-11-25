@@ -11,7 +11,7 @@ type PageError = "INVALID_CREDENTIALS" | "FAILED" | null;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, initializeAuth, isInitialized } = useAuth();
+  const { login, initializeAuth } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,8 +34,14 @@ export default function LoginPage() {
       // Delegate authentication, token storage, and profile fetch to useAuth()
       await login({ email, password });
       router.push("/groups");
-    } catch (err: any) {
-      if (err?.status === 401 || err?.statusCode === 401) {
+    } catch (err: unknown) {
+      const status =
+        typeof err === "object" && err !== null
+          ? ("status" in err ? err.status : undefined) ??
+            ("statusCode" in err ? err.statusCode : undefined)
+          : undefined;
+
+      if (status === 401) {
         setError("INVALID_CREDENTIALS");
       } else {
         setError("FAILED");
