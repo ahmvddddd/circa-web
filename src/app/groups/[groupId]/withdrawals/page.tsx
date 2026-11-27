@@ -10,6 +10,7 @@ import { withdrawalsService, PaginationMeta } from "@/lib/services/withdrawalsSe
 import { Withdrawal } from "@/lib/withdrawals";
 import { ApiError } from "@/lib/api/error-handler";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useGroupAccess } from "@/lib/hooks/useGroupAccess";
 import clsx from "clsx";
 
 type PageError = "UNAUTHENTICATED" | "FORBIDDEN" | "FAILED" | null;
@@ -49,6 +50,13 @@ export default function GroupWithdrawalsPage() {
   const groupId = (params?.groupId as string) ?? "";
   const status = searchParams.get("status");
 
+  const {
+    isLoading: isAccessLoading,
+    isNotMember,
+    canViewResources,
+    status: accessStatus,
+  } = useGroupAccess(isInitialized && isAuthenticated ? groupId : null);
+
   const [withdrawalsList, setWithdrawalsList] = useState<Withdrawal[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<PageError>(null);
@@ -84,6 +92,8 @@ export default function GroupWithdrawalsPage() {
         setPagination(result.pagination);
       } catch (err: unknown) {
         if (currentSeq !== requestSeqRef.current) return;
+
+        if ((err as { isSuperseded?: boolean })?.isSuperseded) return;
 
         if (err instanceof ApiError) {
           if (err.status === 401) {
@@ -122,12 +132,46 @@ export default function GroupWithdrawalsPage() {
       return;
     }
 
+    if (isAccessLoading || accessStatus === "idle") {
+      return;
+    }
+
+    if (isNotMember) {
+      requestSeqRef.current++;
+      setLoading(false);
+      setError("FORBIDDEN");
+      return;
+    }
+
+    if (accessStatus === "error") {
+      requestSeqRef.current++;
+      setLoading(false);
+      setError("FAILED");
+      return;
+    }
+
+    if (!canViewResources) {
+      requestSeqRef.current++;
+      setLoading(false);
+      setError("FORBIDDEN");
+      return;
+    }
+
     fetchWithdrawals(1);
 
     return () => {
       requestSeqRef.current++;
     };
-  }, [isInitialized, isAuthenticated, initializationError, fetchWithdrawals]);
+  }, [
+    isInitialized,
+    isAuthenticated,
+    initializationError,
+    isAccessLoading,
+    accessStatus,
+    isNotMember,
+    canViewResources,
+    fetchWithdrawals,
+  ]);
 
   useEffect(() => {
     if (error === "UNAUTHENTICATED") {
@@ -180,6 +224,8 @@ export default function GroupWithdrawalsPage() {
     ["declined", "Declined"],
   ];
 
+  const isPageLoading = loading || isAccessLoading;
+
   return (
     <AppShell title="Group Withdrawals" subtitle={subtitle}>
       <div className="flex min-h-[calc(100vh-8rem)] flex-col">
@@ -211,7 +257,7 @@ export default function GroupWithdrawalsPage() {
 
         {/* Withdrawals List */}
         <div className="flex flex-col gap-2">
-          {loading ? (
+          {isPageLoading ? (
             <p className="py-6 text-center text-xs text-muted-foreground">
               Loading withdrawals...
             </p>
@@ -233,7 +279,7 @@ export default function GroupWithdrawalsPage() {
         </div>
 
         {/* Pagination */}
-        {!loading && !error && withdrawalsList.length > 0 && (
+        {!isPageLoading && !error && withdrawalsList.length > 0 && (
           <div className="mt-auto pt-6 flex items-center justify-center gap-1">
             {getPaginationRange(pagination.page, pagination.totalPages).map(
               (pageItem, i) => {

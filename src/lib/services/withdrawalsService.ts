@@ -40,4 +40,37 @@ export const withdrawalsService = {
       },
     };
   },
+
+  async getGroupWithdrawalDetails(
+    groupId: string,
+    withdrawalId: string
+  ): Promise<Withdrawal | null> {
+    const response = await apiClient(
+      ENDPOINTS.GROUPS.WITHDRAWAL_DETAILS(groupId, withdrawalId),
+      { method: "GET" }
+    );
+    const json = await response.json();
+    return json?.data?.withdrawal ?? json?.data ?? null;
+  },
+
+  async approveWithdrawal(withdrawalId: string): Promise<void> {
+    await apiClient(
+      ENDPOINTS.TRANSACTIONS.APPROVE_WITHDRAWAL(withdrawalId),
+      { method: "PATCH" }
+    );
+  },
+
+  async declineWithdrawal(withdrawalId: string): Promise<void> {
+    await apiClient(
+      ENDPOINTS.TRANSACTIONS.DECLINE_WITHDRAWAL(withdrawalId),
+      { method: "PATCH" }
+    );
+  },
+
+  async rejectWithdrawal(groupId: string, withdrawalId: string): Promise<void> {
+    await apiClient(
+      ENDPOINTS.TRANSACTIONS.REJECT_WITHDRAWAL(groupId, withdrawalId),
+      { method: "POST" }
+    );
+  },
 };

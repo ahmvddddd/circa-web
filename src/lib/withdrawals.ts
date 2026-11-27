@@ -7,25 +7,40 @@ export type BeneficiaryObject = {
   [key: string]: unknown;
 };
 
-export type ApprovalStatus = "approved" | "rejected" | "pending";
+export type ApprovalStatus = "APPROVED" | "REJECTED" | "PENDING" | string;
 
 export type WithdrawalStatus =
-  | "pending"
-  | "approved"
-  | "declined"
-  | "paid"
+  | "PENDING"
+  | "APPROVED"
+  | "DECLINED"
+  | "PAID"
+  | "REJECTED"
+  | "CANCELLED"
+  | "COMPLETED"
   | string;
 
-export type ApprovalHistory = {
-  name: string;
-  status: ApprovalStatus;
+export type ApprovalHistoryItem = {
+  approval_id?: string;
+  approver_user_id?: string;
+  approver_name?: string;
+  approver_email?: string;
+  name?: string;
+  status?: ApprovalStatus;
+  approved_at?: string;
   date?: string;
+};
+
+export type UserPermissions = {
+  role: "OWNER" | "TREASURER" | "MEMBER";
+  can_approve: boolean;
+  has_already_approved: boolean;
+  is_admin: boolean;
 };
 
 export type WithdrawalApprovals = {
   current: number;
   total: number;
-  history?: ApprovalHistory[];
+  history?: ApprovalHistoryItem[];
 };
 
 export type Withdrawal = {
@@ -35,8 +50,8 @@ export type Withdrawal = {
   group_name?: string;
   groupName?: string;
   amount_kobo?: number;
-  amount?: number;
-  beneficiary: string | BeneficiaryObject;
+  amount?: number | string;
+  beneficiary?: string | BeneficiaryObject;
   reason?: string;
   title?: string;
   requested_by?: string;
@@ -47,6 +62,6 @@ export type Withdrawal = {
   requestedAt?: string;
   expires_at?: string;
   status: WithdrawalStatus;
+  user_permissions?: UserPermissions;
   approvals?: WithdrawalApprovals;
-  [key: string]: unknown;
 };

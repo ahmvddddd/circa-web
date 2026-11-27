@@ -16,9 +16,17 @@ export const ENDPOINTS = {
     MY_GROUPS: `${API_BASE_URL}/api/v1/groups/my-groups`,
     DETAILS: (groupId: string) => `${API_BASE_URL}/api/v1/groups/${groupId}/group-summary`,
     MEMBERSHIP: (groupId: string) => `${API_BASE_URL}/api/v1/groups/${groupId}/members/me`,
-    WITHDRAWALS: (groupId: string) => `${API_BASE_URL}/api/v1/groups/${groupId}/withdrawals`
+    WITHDRAWALS: (groupId: string) => `${API_BASE_URL}/api/v1/groups/${groupId}/withdrawals`,
+    WITHDRAWAL_DETAILS: (groupId: string, withdrawalId: string) =>
+      `${API_BASE_URL}/api/v1/groups/${groupId}/withdrawal-details/${withdrawalId}`,
   },
   TRANSACTIONS: {
     WITHDRAW_EXECUTE: (id: string) => `${API_BASE_URL}/api/v1/transactions/withdraw/${id}/execute`,
+    APPROVE_WITHDRAWAL: (withdrawalId: string) =>
+      `${API_BASE_URL}/api/v1/withdrawals/${withdrawalId}/approve`,
+    DECLINE_WITHDRAWAL: (withdrawalId: string) =>
+      `${API_BASE_URL}/api/v1/withdrawals/${withdrawalId}/decline`,
+    REJECT_WITHDRAWAL: (groupId: string, withdrawalId: string) =>
+      `${API_BASE_URL}/api/v1/groups/${groupId}/withdrawals/${withdrawalId}/reject`,
   },
 } as const;
